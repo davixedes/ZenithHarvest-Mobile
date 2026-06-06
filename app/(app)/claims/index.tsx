@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack } from 'expo-router';
 
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
 import { Claim, CLAIM_CATEGORY, CLAIM_SITUATION, CLAIM_SITUATION_COLOR, claimService } from '@/services/claimService';
 
 export default function ClaimsScreen() {
@@ -54,7 +55,7 @@ export default function ClaimsScreen() {
             tintColor={colors.primary}
           />
         }
-        ListEmptyComponent={<EmptyState message="Nenhum sinistro registrado." icon="📋" />}
+        ListEmptyComponent={<EmptyState message="Nenhum sinistro registrado." ionicon="document-text-outline" />}
         renderItem={({ item }) => {
           const color = CLAIM_SITUATION_COLOR[item.claimSituationId] ?? colors.textMuted;
           const label = CLAIM_SITUATION[item.claimSituationId] ?? 'Desconhecido';
@@ -65,16 +66,20 @@ export default function ClaimsScreen() {
               onPress={() => router.push(`/(app)/claims/${item.id}`)}
               accessibilityLabel={`Sinistro ${item.claimNumber}`}
             >
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>{item.claimNumber}</Text>
-                <View style={[styles.badge, { backgroundColor: color + '20' }]}>
-                  <Text style={[styles.badgeText, { color }]}>{label}</Text>
+              <View style={[styles.statusAccent, { backgroundColor: color }]} />
+              <View style={styles.cardBody}>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.cardTitle}>{item.claimNumber}</Text>
+                  <View style={[styles.badge, { backgroundColor: color + '18' }]}>
+                    <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                  </View>
                 </View>
+                <Text style={styles.cardSub}>{category}</Text>
+                <Text style={styles.cardDate}>
+                  {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+                </Text>
               </View>
-              <Text style={styles.cardSub}>{category}</Text>
-              <Text style={styles.cardDate}>
-                {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-              </Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
             </TouchableOpacity>
           );
         }}
@@ -89,17 +94,18 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.xs,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+    gap: spacing.sm,
+    ...shadow.sm,
   },
+  statusAccent: { width: 4, alignSelf: 'stretch' },
+  cardBody: { flex: 1, paddingVertical: spacing.md, gap: 4 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardTitle: { ...typography.label, fontSize: 15, color: colors.text },
-  cardSub: { ...typography.caption },
-  cardDate: { ...typography.caption, fontSize: 12 },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.full },
-  badgeText: { fontSize: 12, fontWeight: '600' },
+  cardTitle: { ...typography.bodyBold, color: colors.text },
+  cardSub: { ...typography.caption, color: colors.textMuted },
+  cardDate: { ...typography.micro, color: colors.textLight, marginTop: 2 },
+  badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
+  badgeText: { ...typography.micro },
 });

@@ -21,8 +21,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.md,
+    gap: spacing.sm,
     backgroundColor: colors.background,
   },
-  text: { ...typography.body, color: colors.textMuted },
+  text: { ...typography.caption, color: colors.textMuted, marginTop: spacing.xs },
 });

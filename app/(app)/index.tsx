@@ -8,12 +8,13 @@ import {
   View,
 } from 'react-native';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
 import { Claim, CLAIM_CATEGORY, CLAIM_SITUATION, CLAIM_SITUATION_COLOR, claimService } from '@/services/claimService';
 import { Farm, farmService } from '@/services/farmService';
 import { useAuthContext } from '@/store/authContext';
@@ -40,14 +41,7 @@ export default function DashboardScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={load} />;
@@ -59,112 +53,166 @@ export default function DashboardScreen() {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={colors.primary} />
+      }
     >
-      <View style={styles.welcome}>
-        <Text style={styles.welcomeText}>Olá, {user?.name ?? 'Produtor'} 👋</Text>
-        <Text style={styles.welcomeSub}>Acompanhe sua lavoura</Text>
-      </View>
-
-      <View style={styles.statsRow}>
-        <StatCard label="Fazendas" value={String(farms.length)} emoji="🌾" />
-        <StatCard label="Sinistros" value={String(claims.length)} emoji="📋" />
-        <StatCard label="Em aberto" value={String(openClaims)} emoji="⏳" />
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Minhas Fazendas</Text>
-          <TouchableOpacity
-            onPress={() => router.push('/(app)/farms')}
-            accessibilityLabel="Ver todas as fazendas"
-          >
-            <Text style={styles.seeAll}>Ver todas</Text>
-          </TouchableOpacity>
+      {/* Hero */}
+      <View style={styles.hero}>
+        <View>
+          <Text style={styles.greeting}>Olá, {user?.name ?? 'Produtor'} 👋</Text>
+          <Text style={styles.heroSub}>Acompanhe sua lavoura</Text>
         </View>
+        <TouchableOpacity
+          style={styles.newClaimFab}
+          onPress={() => router.push('/(app)/claims/new')}
+          accessibilityLabel="Abrir novo sinistro"
+        >
+          <Ionicons name="add" size={22} color={colors.textOnPrimary} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Stats */}
+      <View style={styles.statsRow}>
+        <StatCard label="Fazendas" value={farms.length} icon="leaf" color={colors.primary} />
+        <StatCard label="Sinistros" value={claims.length} icon="document-text" color={colors.info} />
+        <StatCard label="Em aberto" value={openClaims} icon="time" color={colors.warning} />
+      </View>
+
+      {/* Farms */}
+      <Section
+        title="Minhas Fazendas"
+        onSeeAll={() => router.push('/(app)/farms')}
+        onAdd={() => router.push('/(app)/farms/new')}
+      >
         {farms.length === 0 ? (
-          <EmptyState message="Nenhuma fazenda cadastrada." icon="🌾" />
+          <EmptyState message="Nenhuma fazenda cadastrada." ionicon="leaf-outline" />
         ) : (
           farms.slice(0, 3).map((farm) => (
             <TouchableOpacity
               key={farm.id}
-              style={styles.card}
+              style={styles.listCard}
               onPress={() => router.push(`/(app)/farms/${farm.id}`)}
               accessibilityLabel={`Fazenda ${farm.name}`}
             >
-              <Text style={styles.cardTitle}>{farm.name}</Text>
-              <Text style={styles.cardSub}>
-                {farm.totalAreaHectares} ha · {farm.state}
-              </Text>
+              <View style={styles.listCardIcon}>
+                <Ionicons name="leaf" size={18} color={colors.primary} />
+              </View>
+              <View style={styles.listCardBody}>
+                <Text style={styles.listCardTitle}>{farm.name}</Text>
+                <Text style={styles.listCardSub}>{farm.totalAreaHectares} ha · {farm.state}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
             </TouchableOpacity>
           ))
         )}
-      </View>
+      </Section>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Sinistros Recentes</Text>
-          <TouchableOpacity
-            onPress={() => router.push('/(app)/claims')}
-            accessibilityLabel="Ver todos os sinistros"
-          >
-            <Text style={styles.seeAll}>Ver todos</Text>
-          </TouchableOpacity>
-        </View>
+      {/* Claims */}
+      <Section title="Sinistros Recentes" onSeeAll={() => router.push('/(app)/claims')}>
         {recentClaims.length === 0 ? (
-          <EmptyState message="Nenhum sinistro registrado." icon="📋" />
+          <EmptyState message="Nenhum sinistro registrado." ionicon="document-text-outline" />
         ) : (
           recentClaims.map((claim) => {
             const color = CLAIM_SITUATION_COLOR[claim.claimSituationId] ?? colors.textMuted;
-            const label = CLAIM_SITUATION[claim.claimSituationId] ?? 'Desconhecido';
+            const label = CLAIM_SITUATION[claim.claimSituationId] ?? '—';
             return (
               <TouchableOpacity
                 key={claim.id}
-                style={styles.card}
+                style={styles.listCard}
                 onPress={() => router.push(`/(app)/claims/${claim.id}`)}
                 accessibilityLabel={`Sinistro ${claim.claimNumber}`}
               >
-                <View style={styles.cardRow}>
-                  <Text style={styles.cardTitle}>{claim.claimNumber}</Text>
-                  <View style={[styles.badge, { backgroundColor: color + '20' }]}>
-                    <Text style={[styles.badgeText, { color }]}>{label}</Text>
-                  </View>
+                <View style={[styles.statusBar, { backgroundColor: color }]} />
+                <View style={styles.listCardBody}>
+                  <Text style={styles.listCardTitle}>{claim.claimNumber}</Text>
+                  <Text style={styles.listCardSub}>{CLAIM_CATEGORY[claim.categoryId] ?? '—'}</Text>
                 </View>
-                <Text style={styles.cardSub}>{CLAIM_CATEGORY[claim.categoryId] ?? `Cat. ${claim.categoryId}`}</Text>
+                <View style={[styles.badge, { backgroundColor: color + '18' }]}>
+                  <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                </View>
               </TouchableOpacity>
             );
           })
         )}
-      </View>
-
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/(app)/claims/new')}
-        accessibilityLabel="Abrir novo sinistro"
-      >
-        <Text style={styles.fabText}>＋ Abrir Sinistro</Text>
-      </TouchableOpacity>
+      </Section>
     </ScrollView>
   );
 }
 
-function StatCard({ label, value, emoji }: { label: string; value: string; emoji: string }) {
+function StatCard({ label, value, icon, color }: { label: string; value: number; icon: React.ComponentProps<typeof Ionicons>['name']; color: string }) {
   return (
-    <View style={styles.statCard}>
-      <Text style={styles.statEmoji}>{emoji}</Text>
+    <View style={[styles.statCard, { borderTopColor: color }]}>
+      <Ionicons name={icon} size={20} color={color} />
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
 }
 
+function Section({
+  title,
+  onSeeAll,
+  onAdd,
+  children,
+}: {
+  title: string;
+  onSeeAll?: () => void;
+  onAdd?: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <View style={styles.sectionActions}>
+          {onAdd && (
+            <TouchableOpacity onPress={onAdd} style={styles.addBtn} accessibilityLabel="Adicionar">
+              <Ionicons name="add" size={18} color={colors.primary} />
+            </TouchableOpacity>
+          )}
+          {onSeeAll && (
+            <TouchableOpacity onPress={onSeeAll} accessibilityLabel="Ver todos">
+              <Text style={styles.seeAll}>Ver todos</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+      <View style={styles.sectionContent}>{children}</View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xxl },
-  welcome: { gap: spacing.xs },
-  welcomeText: { ...typography.heading, color: colors.text },
-  welcomeSub: { ...typography.body, color: colors.textMuted },
-  statsRow: { flexDirection: 'row', gap: spacing.sm },
+  content: { gap: spacing.lg, paddingBottom: spacing.xxl },
+
+  hero: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  greeting: { ...typography.heading, color: colors.textOnPrimary },
+  heroSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14, marginTop: 2 },
+  newClaimFab: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginTop: -spacing.md,
+  },
   statCard: {
     flex: 1,
     backgroundColor: colors.surface,
@@ -172,43 +220,48 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     alignItems: 'center',
     gap: spacing.xs,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    borderTopWidth: 3,
+    ...shadow.sm,
   },
-  statEmoji: { fontSize: 24 },
-  statValue: { ...typography.heading, color: colors.text },
-  statLabel: { ...typography.caption },
-  section: { gap: spacing.sm },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  statValue: { ...typography.heading, color: colors.text, fontSize: 24 },
+  statLabel: { ...typography.micro, color: colors.textMuted, textTransform: 'uppercase' },
+
+  section: { paddingHorizontal: spacing.md, gap: spacing.sm },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionTitle: { ...typography.title, color: colors.text },
+  sectionActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  seeAll: { ...typography.label, color: colors.primary },
+  addBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primaryLight,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  sectionTitle: { ...typography.subheading, color: colors.text },
-  seeAll: { color: colors.primary, fontWeight: '600', fontSize: 14 },
-  card: {
+  sectionContent: { gap: spacing.sm },
+
+  listCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
-    gap: spacing.xs,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    gap: spacing.sm,
+    ...shadow.sm,
   },
-  cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardTitle: { ...typography.label, color: colors.text, fontSize: 15 },
-  cardSub: { ...typography.caption },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.full },
-  badgeText: { fontSize: 12, fontWeight: '600' },
-  fab: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.full,
-    padding: spacing.md,
+  listCardIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.primaryLight,
     alignItems: 'center',
-    marginTop: spacing.sm,
+    justifyContent: 'center',
   },
-  fabText: { color: colors.textOnPrimary, fontWeight: '600', fontSize: 16 },
+  listCardBody: { flex: 1, gap: 2 },
+  listCardTitle: { ...typography.bodyBold, color: colors.text },
+  listCardSub: { ...typography.caption, color: colors.textMuted },
+  statusBar: { width: 4, height: '100%', borderRadius: 2, alignSelf: 'stretch' },
+  badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
+  badgeText: { ...typography.micro },
 });

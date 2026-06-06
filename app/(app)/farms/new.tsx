@@ -15,7 +15,9 @@ import {
 import * as Location from 'expo-location';
 import { router, Stack } from 'expo-router';
 
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
+import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
 import { farmService } from '@/services/farmService';
 import { useAuthContext } from '@/store/authContext';
 
@@ -119,10 +121,14 @@ export default function NewFarmScreen() {
               accessibilityLabel="Usar localização atual"
               style={styles.locBtn}
             >
-              {locating
-                ? <ActivityIndicator size="small" color={colors.primary} />
-                : <Text style={styles.locBtnText}>📍 Usar atual</Text>
-              }
+              {locating ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <>
+                  <Ionicons name="location-outline" size={14} color={colors.primary} />
+                  <Text style={styles.locBtnText}>Usar atual</Text>
+                </>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -193,24 +199,29 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.md,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...shadow.sm,
   },
-  sectionTitle: { ...typography.subheading, color: colors.text },
+  sectionTitle: { ...typography.title, color: colors.text },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   row: { flexDirection: 'row', gap: spacing.sm },
-  locBtn: { paddingVertical: spacing.xs, paddingHorizontal: spacing.sm },
+  locBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.full,
+  },
   locBtnText: { color: colors.primary, fontWeight: '600', fontSize: 13 },
   field: { gap: spacing.xs },
-  label: { ...typography.label, color: colors.text },
+  label: { ...typography.label, color: colors.textSecondary },
   input: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: radius.md,
     padding: spacing.md,
-    fontSize: 16,
+    fontSize: 15,
     color: colors.text,
     backgroundColor: colors.background,
   },
@@ -219,7 +230,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     alignItems: 'center',
+    ...shadow.sm,
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.textOnPrimary, fontWeight: '600', fontSize: 16 },
+  buttonText: { color: colors.textOnPrimary, fontWeight: '700', fontSize: 16 },
 });

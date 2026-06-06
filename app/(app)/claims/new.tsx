@@ -17,9 +17,11 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { router, Stack } from 'expo-router';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
 import {
   CLAIM_CATEGORY,
   CLAIM_SUBCATEGORY,
@@ -261,13 +263,19 @@ export default function NewClaimScreen() {
             {photoUri ? (
               <Image source={{ uri: photoUri }} style={styles.photo} />
             ) : (
-              <Text style={styles.photoBtnText}>📷 Adicionar foto</Text>
+              <View style={styles.photoBtnInner}>
+                <Ionicons name="camera-outline" size={28} color={colors.textLight} />
+                <Text style={styles.photoBtnText}>Adicionar foto</Text>
+              </View>
             )}
           </TouchableOpacity>
           {coords && (
-            <Text style={styles.coordsText}>
-              📍 {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
-            </Text>
+            <View style={styles.coordsRow}>
+              <Ionicons name="location-outline" size={14} color={colors.primary} />
+              <Text style={styles.coordsText}>
+                {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
+              </Text>
+            </View>
           )}
         </View>
 
@@ -296,19 +304,16 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.sm,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...shadow.sm,
   },
-  sectionTitle: { ...typography.subheading, color: colors.text },
-  emptyText: { ...typography.caption, textAlign: 'center', padding: spacing.sm },
+  sectionTitle: { ...typography.title, color: colors.text },
+  emptyText: { ...typography.caption, color: colors.textMuted, textAlign: 'center', padding: spacing.sm },
   input: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: radius.md,
     padding: spacing.md,
-    fontSize: 16,
+    fontSize: 15,
     color: colors.text,
     backgroundColor: colors.background,
   },
@@ -318,33 +323,36 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: radius.full,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
     backgroundColor: colors.background,
   },
   optionSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
-  optionText: { fontSize: 14, color: colors.text },
-  optionTextSelected: { color: colors.textOnPrimary, fontWeight: '600' },
+  optionText: { fontSize: 14, color: colors.textSecondary },
+  optionTextSelected: { color: colors.textOnPrimary, fontWeight: '700' },
   photoBtn: {
     borderWidth: 2,
     borderStyle: 'dashed',
     borderColor: colors.border,
     borderRadius: radius.md,
-    padding: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 120,
     overflow: 'hidden',
+    backgroundColor: colors.surfaceSecondary,
   },
-  photoBtnText: { color: colors.textMuted, fontSize: 16 },
+  photoBtnInner: { alignItems: 'center', gap: spacing.xs, padding: spacing.lg },
+  photoBtnText: { ...typography.label, color: colors.textLight },
   photo: { width: '100%', height: 200, borderRadius: radius.sm },
-  coordsText: { ...typography.caption, textAlign: 'center' },
+  coordsRow: { flexDirection: 'row', alignItems: 'center', gap: 4, justifyContent: 'center' },
+  coordsText: { ...typography.caption, color: colors.textMuted },
   submitBtn: {
     backgroundColor: colors.primary,
     borderRadius: radius.md,
     padding: spacing.md,
     alignItems: 'center',
+    ...shadow.sm,
   },
   submitBtnDisabled: { opacity: 0.6 },
-  submitBtnText: { color: colors.textOnPrimary, fontWeight: '600', fontSize: 16 },
+  submitBtnText: { color: colors.textOnPrimary, fontWeight: '700', fontSize: 16 },
 });
