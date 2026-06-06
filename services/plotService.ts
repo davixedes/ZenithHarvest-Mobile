@@ -21,6 +21,18 @@ export interface CreatePlotPayload {
   cropId?: string;
 }
 
+export interface NdviHistorico {
+  id: string;
+  plotId: string;
+  claimId: string;
+  imageDate: string;
+  meanNdvi: number;
+  meanEvi?: number;
+  satelliteSource?: string;
+  cloudCoveragePct?: number;
+  createdAt: string;
+}
+
 /** IDs do seed: 1=Em preparo, 2=Plantado, 3=Em desenvolvimento, 4=Colhido, 5=Perda total */
 export const PLOT_SITUATION: Record<number, string> = {
   1: 'Em preparo',
@@ -56,5 +68,10 @@ export const plotService = {
 
   async delete(id: string): Promise<void> {
     await api.delete(`/api/plots/${id}`);
+  },
+
+  async getNdviHistorico(plotId: string): Promise<NdviHistorico[]> {
+    const { data } = await api.get<NdviHistorico[]>(`/api/plots/${plotId}/ndvi-historico`);
+    return Array.isArray(data) ? data : [];
   },
 };
