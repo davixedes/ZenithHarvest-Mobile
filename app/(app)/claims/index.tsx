@@ -56,7 +56,7 @@ export default function ClaimsScreen() {
               style={{ marginRight: spacing.sm, padding: 4 }}
               accessibilityLabel="Adicionar novo sinistro"
             >
-              <Ionicons name="add-circle-outline" size={26} color={colors.textOnPrimary} />
+              <Ionicons name="add-circle-outline" size={26} color={colors.primary} />
             </TouchableOpacity>
           ),
         }}

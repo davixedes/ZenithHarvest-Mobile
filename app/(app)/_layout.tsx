@@ -46,9 +46,9 @@ export default function AppLayout() {
           paddingTop: 6,
           ...shadow.sm,
         },
-        headerStyle: { backgroundColor: colors.primary },
-        headerTintColor: colors.textOnPrimary,
-        headerTitleStyle: { fontWeight: '700', fontSize: 17 },
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.text,
+        headerTitleStyle: { fontWeight: '700', fontSize: 17, color: colors.text },
         headerShadowVisible: false,
       }}
     >
