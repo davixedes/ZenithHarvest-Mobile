@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 
 import {
   DashboardSkeleton,
@@ -17,21 +17,53 @@ interface Props {
   rows?: number;
 }
 
-export function LoadingState({ message = 'Carregando...', variant = 'default', rows }: Props) {
-  if (variant === 'dashboard') return <DashboardSkeleton />;
-  if (variant === 'list') return <ListSkeleton rows={rows} />;
-  if (variant === 'detail') return <DetailSkeleton />;
-
+function LoadingShell({ children }: { children: React.ReactNode }) {
   const colors = useColors();
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ActivityIndicator size="large" color={colors.primary} />
-      <Text style={[styles.text, { color: colors.textMuted }]}>{message}</Text>
+    <View style={[styles.shell, { backgroundColor: colors.background }, Platform.OS === 'web' && styles.webShell]}>
+      {children}
     </View>
   );
 }
 
+export function LoadingState({ message = 'Carregando...', variant = 'default', rows }: Props) {
+  const colors = useColors();
+
+  if (variant === 'dashboard') {
+    return (
+      <LoadingShell>
+        <DashboardSkeleton />
+      </LoadingShell>
+    );
+  }
+  if (variant === 'list') {
+    return (
+      <LoadingShell>
+        <ListSkeleton rows={rows} />
+      </LoadingShell>
+    );
+  }
+  if (variant === 'detail') {
+    return (
+      <LoadingShell>
+        <DetailSkeleton />
+      </LoadingShell>
+    );
+  }
+
+  return (
+    <LoadingShell>
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.text, { color: colors.textMuted }]}>{message}</Text>
+      </View>
+    </LoadingShell>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  shell: { flex: 1 },
+  webShell: StyleSheet.absoluteFillObject,
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   text: { ...typography.caption, marginTop: spacing.xs },
 });

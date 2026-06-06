@@ -2,6 +2,7 @@ import 'react-native-gesture-handler';
 
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -23,7 +24,7 @@ function AppContent() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, height: Platform.OS === 'web' ? '100vh' : undefined }}>
       <SafeAreaProvider>
         <ThemeProvider>
           <AuthProvider>

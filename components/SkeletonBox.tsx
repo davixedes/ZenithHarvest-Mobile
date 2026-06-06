@@ -1,7 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View, ViewStyle } from 'react-native';
-
-import { LinearGradient } from 'expo-linear-gradient';
+import { Animated, Platform, StyleSheet, ViewStyle } from 'react-native';
 
 import { radius } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -15,47 +13,32 @@ interface Props {
 
 export function SkeletonBox({ width, height = 16, borderRadius = radius.sm, style }: Props) {
   const colors = useColors();
-  const shimmer = useRef(new Animated.Value(0)).current;
-  const animation = useRef<Animated.CompositeAnimation | null>(null);
+  const opacity = useRef(new Animated.Value(0.45)).current;
 
   useEffect(() => {
-    animation.current = Animated.loop(
-      Animated.timing(shimmer, {
-        toValue: 1,
-        duration: 1400,
-        useNativeDriver: true,
-      })
+    const nativeDriver = Platform.OS !== 'web';
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: nativeDriver }),
+        Animated.timing(opacity, { toValue: 0.45, duration: 800, useNativeDriver: nativeDriver }),
+      ])
     );
-    animation.current.start();
-    return () => animation.current?.stop();
-  }, [shimmer]);
-
-  const translateX = shimmer.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-320, 320],
-  });
+    animation.start();
+    return () => animation.stop();
+  }, [opacity]);
 
   return (
-    <View
+    <Animated.View
       style={[
         {
           width: width as ViewStyle['width'],
           height,
           borderRadius,
           backgroundColor: colors.surfaceSecondary,
-          overflow: 'hidden',
+          opacity,
         },
         style,
       ]}
-    >
-      <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateX }] }]}>
-        <LinearGradient
-          colors={[colors.surfaceSecondary, colors.surface, colors.surfaceSecondary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-    </View>
+    />
   );
 }
