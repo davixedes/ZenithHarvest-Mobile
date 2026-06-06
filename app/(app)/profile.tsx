@@ -74,6 +74,26 @@ export default function ProfileScreen() {
 
         <TouchableOpacity
           style={styles.aboutBtn}
+          onPress={() => router.push('/(app)/payments')}
+          accessibilityLabel="Ver pagamentos"
+        >
+          <Ionicons name="card-outline" size={20} color={colors.textSecondary} />
+          <Text style={styles.aboutBtnText}>Pagamentos</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textLight} style={{ marginLeft: 'auto' }} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.aboutBtn}
+          onPress={() => router.push('/(app)/policies')}
+          accessibilityLabel="Ver apólices"
+        >
+          <Ionicons name="shield-checkmark-outline" size={20} color={colors.textSecondary} />
+          <Text style={styles.aboutBtnText}>Apólices</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textLight} style={{ marginLeft: 'auto' }} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.aboutBtn}
           onPress={() => router.push('/about')}
           accessibilityLabel="Sobre o app"
         >

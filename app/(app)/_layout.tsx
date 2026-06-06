@@ -86,11 +86,14 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
-        name="payments"
+        name="chat"
         options={{
-          title: 'Pagamentos',
+          title: 'Chat IA',
           tabBarIcon: ({ focused }) => (
-            <TabIcon name={{ active: 'card', inactive: 'card-outline' }} focused={focused} />
+            <TabIcon
+              name={{ active: 'chatbubble-ellipses', inactive: 'chatbubble-ellipses-outline' }}
+              focused={focused}
+            />
           ),
         }}
       />
@@ -106,6 +109,9 @@ export default function AppLayout() {
           ),
         }}
       />
+      {/* Screens acessíveis via Perfil — não aparecem como tabs */}
+      <Tabs.Screen name="payments" options={{ href: null }} />
+      <Tabs.Screen name="policies" options={{ href: null }} />
     </Tabs>
   );
 }

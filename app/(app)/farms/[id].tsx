@@ -21,6 +21,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { Crop, cropService } from '@/services/cropService';
 import { Farm, farmService } from '@/services/farmService';
 import { CreatePlotPayload, Plot, plotService, PLOT_SITUATION, PLOT_SITUATION_COLOR } from '@/services/plotService';
 
@@ -47,6 +48,8 @@ export default function FarmDetailScreen() {
   const [plotIdentifier, setPlotIdentifier] = useState('');
   const [plotArea, setPlotArea] = useState('');
   const [savingPlot, setSavingPlot] = useState(false);
+  const [crops, setCrops] = useState<Crop[]>([]);
+  const [selectedCropId, setSelectedCropId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -98,6 +101,16 @@ export default function FarmDetailScreen() {
     }
   }
 
+  async function openPlotModal() {
+    setPlotModal(true);
+    if (crops.length === 0) {
+      try {
+        const data = await cropService.list();
+        setCrops(data);
+      } catch {}
+    }
+  }
+
   async function handleAddPlot() {
     if (!plotIdentifier.trim()) {
       Alert.alert('Atenção', 'Identificador do talhão é obrigatório.');
@@ -110,12 +123,14 @@ export default function FarmDetailScreen() {
         identifier: plotIdentifier.trim(),
         plotSituationId: 1,
         areaHectares: plotArea ? parseFloat(plotArea) : undefined,
+        cropId: selectedCropId ?? undefined,
       };
       const newPlot = await plotService.create(payload);
       setPlots((prev) => [...prev, newPlot]);
       setPlotModal(false);
       setPlotIdentifier('');
       setPlotArea('');
+      setSelectedCropId(null);
     } catch {
       Alert.alert('Erro', 'Não foi possível cadastrar o talhão.');
     } finally {
@@ -159,7 +174,7 @@ export default function FarmDetailScreen() {
               style={{ marginRight: spacing.sm }}
               accessibilityLabel={editing ? 'Cancelar edição' : 'Editar fazenda'}
             >
-              <Text style={{ color: colors.textOnPrimary, fontWeight: '600' }}>
+              <Text style={{ color: colors.text, fontWeight: '600' }}>
                 {editing ? 'Cancelar' : 'Editar'}
               </Text>
             </TouchableOpacity>
@@ -205,7 +220,7 @@ export default function FarmDetailScreen() {
           <View style={styles.rowBetween}>
             <Text style={styles.sectionTitle}>Talhões ({plots.length})</Text>
             <TouchableOpacity
-              onPress={() => setPlotModal(true)}
+              onPress={openPlotModal}
               style={styles.addPlotBtn}
               accessibilityLabel="Adicionar talhão"
             >
@@ -294,10 +309,40 @@ export default function FarmDetailScreen() {
                 />
               </View>
 
+              {crops.length > 0 && (
+                <View style={styles.field}>
+                  <Text style={styles.label}>Cultura (opcional)</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
+                    <View style={styles.cropRow}>
+                      {crops.map((crop) => (
+                        <TouchableOpacity
+                          key={crop.id}
+                          style={[
+                            styles.cropChip,
+                            selectedCropId === crop.id && styles.cropChipSelected,
+                          ]}
+                          onPress={() => setSelectedCropId(selectedCropId === crop.id ? null : crop.id)}
+                          accessibilityLabel={`Cultura ${crop.name}`}
+                        >
+                          <Text
+                            style={[
+                              styles.cropChipText,
+                              selectedCropId === crop.id && styles.cropChipTextSelected,
+                            ]}
+                          >
+                            {crop.name}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </ScrollView>
+                </View>
+              )}
+
               <View style={styles.modalActions}>
                 <TouchableOpacity
                   style={styles.modalCancel}
-                  onPress={() => { setPlotModal(false); setPlotIdentifier(''); setPlotArea(''); }}
+                  onPress={() => { setPlotModal(false); setPlotIdentifier(''); setPlotArea(''); setSelectedCropId(null); }}
                   accessibilityLabel="Cancelar"
                 >
                   <Text style={styles.modalCancelText}>Cancelar</Text>
@@ -467,6 +512,18 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       borderColor: c.border,
     },
     modalCancelText: { color: c.textMuted, fontWeight: '600' },
+    cropRow: { flexDirection: 'row', gap: spacing.xs, paddingBottom: spacing.xs },
+    cropChip: {
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 6,
+      borderRadius: radius.full,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      backgroundColor: c.background,
+    },
+    cropChipSelected: { borderColor: c.primary, backgroundColor: c.primaryLight },
+    cropChipText: { fontSize: 13, color: c.textMuted, fontWeight: '500' },
+    cropChipTextSelected: { color: c.primary, fontWeight: '700' },
     modalConfirm: {
       flex: 1,
       padding: spacing.md,
