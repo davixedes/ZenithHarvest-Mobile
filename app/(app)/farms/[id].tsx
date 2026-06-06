@@ -18,30 +18,37 @@ import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { Farm, farmService } from '@/services/farmService';
-
-const plotSituationColor = { NORMAL: colors.success, ALERT: colors.warning, CRITICAL: colors.danger };
-const plotSituationLabel = { NORMAL: 'Normal', ALERT: 'Alerta', CRITICAL: 'Crítico' };
+import { Plot, plotService, PLOT_SITUATION, PLOT_SITUATION_COLOR } from '@/services/plotService';
 
 export default function FarmDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [farm, setFarm] = useState<Farm | null>(null);
+  const [plots, setPlots] = useState<Plot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState('');
-  const [area, setArea] = useState('');
-  const [city, setCity] = useState('');
+  const [carRegistration, setCarRegistration] = useState('');
+  const [nirf, setNirf] = useState('');
+  const [totalAreaHectares, setTotalAreaHectares] = useState('');
+  const [state, setState] = useState('');
 
   const load = useCallback(async () => {
     try {
       setError('');
-      const data = await farmService.getById(id);
-      setFarm(data);
-      setName(data.name);
-      setArea(String(data.area));
-      setCity(data.city);
+      const [farmData, plotsData] = await Promise.all([
+        farmService.getById(id),
+        plotService.listByFarm(id),
+      ]);
+      setFarm(farmData);
+      setPlots(plotsData);
+      setName(farmData.name);
+      setCarRegistration(farmData.carRegistration);
+      setNirf(farmData.nirf);
+      setTotalAreaHectares(String(farmData.totalAreaHectares));
+      setState(farmData.state);
     } catch {
       setError('Não foi possível carregar a fazenda.');
     } finally {
@@ -54,7 +61,7 @@ export default function FarmDetailScreen() {
   }, [load]);
 
   async function handleSave() {
-    if (!name.trim() || !area.trim()) {
+    if (!name.trim() || !totalAreaHectares.trim()) {
       Alert.alert('Atenção', 'Nome e área são obrigatórios.');
       return;
     }
@@ -62,8 +69,12 @@ export default function FarmDetailScreen() {
     try {
       const updated = await farmService.update(id, {
         name: name.trim(),
-        area: parseFloat(area),
-        city: city.trim(),
+        carRegistration: carRegistration.trim(),
+        nirf: nirf.trim(),
+        latitude: farm!.latitude,
+        longitude: farm!.longitude,
+        totalAreaHectares: parseFloat(totalAreaHectares),
+        state: state.trim(),
       });
       setFarm(updated);
       setEditing(false);
@@ -105,8 +116,10 @@ export default function FarmDetailScreen() {
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Editar Fazenda</Text>
             <Field label="Nome" value={name} onChange={setName} />
-            <Field label="Área (ha)" value={area} onChange={setArea} keyboardType="numeric" />
-            <Field label="Cidade" value={city} onChange={setCity} />
+            <Field label="CAR" value={carRegistration} onChange={setCarRegistration} />
+            <Field label="NIRF" value={nirf} onChange={setNirf} />
+            <Field label="Área (ha)" value={totalAreaHectares} onChange={setTotalAreaHectares} keyboardType="numeric" />
+            <Field label="Estado (UF)" value={state} onChange={setState} />
             <TouchableOpacity
               style={[styles.button, saving && styles.buttonDisabled]}
               onPress={handleSave}
@@ -124,38 +137,33 @@ export default function FarmDetailScreen() {
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Informações</Text>
             <InfoRow label="Nome" value={farm.name} />
-            <InfoRow label="Área" value={`${farm.area} ha`} />
-            <InfoRow label="Bioma" value={farm.biome} />
+            <InfoRow label="Área" value={`${farm.totalAreaHectares} ha`} />
             <InfoRow label="Estado" value={farm.state} />
-            <InfoRow label="Cidade" value={farm.city} />
+            <InfoRow label="CAR" value={farm.carRegistration} />
+            <InfoRow label="NIRF" value={farm.nirf} />
+            <InfoRow label="Latitude" value={String(farm.latitude)} />
+            <InfoRow label="Longitude" value={String(farm.longitude)} />
           </View>
         )}
 
-        {farm.plots && farm.plots.length > 0 && (
+        {plots.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Talhões</Text>
-            {farm.plots.map((plot) => (
-              <View key={plot.id} style={styles.plotCard}>
-                <View style={styles.plotRow}>
-                  <Text style={styles.plotName}>{plot.name}</Text>
-                  <View
-                    style={[
-                      styles.badge,
-                      { backgroundColor: plotSituationColor[plot.situation] + '20' },
-                    ]}
-                  >
-                    <Text
-                      style={[styles.badgeText, { color: plotSituationColor[plot.situation] }]}
-                    >
-                      {plotSituationLabel[plot.situation]}
-                    </Text>
+            <Text style={styles.sectionTitle}>Talhões ({plots.length})</Text>
+            {plots.map((plot) => {
+              const color = PLOT_SITUATION_COLOR[plot.plotSituationId] ?? colors.textMuted;
+              const label = PLOT_SITUATION[plot.plotSituationId] ?? `Situação ${plot.plotSituationId}`;
+              return (
+                <View key={plot.id} style={styles.plotCard}>
+                  <View style={styles.plotRow}>
+                    <Text style={styles.plotName}>{plot.identifier}</Text>
+                    <View style={[styles.badge, { backgroundColor: color + '20' }]}>
+                      <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                    </View>
                   </View>
+                  <Text style={styles.plotSub}>{plot.areaHectares ?? '—'} ha</Text>
                 </View>
-                <Text style={styles.plotSub}>
-                  {plot.area} ha · {plot.cropType}
-                </Text>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
 

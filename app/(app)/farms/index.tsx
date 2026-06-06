@@ -89,12 +89,8 @@ export default function FarmsScreen() {
           >
             <View style={styles.cardBody}>
               <Text style={styles.cardTitle}>{item.name}</Text>
-              <Text style={styles.cardSub}>
-                {item.area} ha · {item.biome}
-              </Text>
-              <Text style={styles.cardSub}>
-                {item.city}, {item.state}
-              </Text>
+              <Text style={styles.cardSub}>{item.totalAreaHectares} ha · {item.state}</Text>
+              <Text style={styles.cardSub}>CAR: {item.carRegistration}</Text>
             </View>
             <TouchableOpacity
               onPress={() => confirmDelete(item)}

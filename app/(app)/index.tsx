@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  FlatList,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -15,25 +14,9 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { colors, radius, spacing, typography } from '@/constants/theme';
-import { claimService, Claim, ClaimSituation } from '@/services/claimService';
-import { farmService, Farm } from '@/services/farmService';
+import { Claim, CLAIM_CATEGORY, CLAIM_SITUATION, CLAIM_SITUATION_COLOR, claimService } from '@/services/claimService';
+import { Farm, farmService } from '@/services/farmService';
 import { useAuthContext } from '@/store/authContext';
-
-const situationLabel: Record<ClaimSituation, string> = {
-  PENDING: 'Pendente',
-  UNDER_ANALYSIS: 'Em análise',
-  APPROVED: 'Aprovado',
-  REJECTED: 'Reprovado',
-  PAID: 'Pago',
-};
-
-const situationColor: Record<ClaimSituation, string> = {
-  PENDING: colors.warning,
-  UNDER_ANALYSIS: '#3B82F6',
-  APPROVED: colors.success,
-  REJECTED: colors.danger,
-  PAID: colors.primary,
-};
 
 export default function DashboardScreen() {
   const { user } = useAuthContext();
@@ -69,6 +52,7 @@ export default function DashboardScreen() {
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={load} />;
 
+  const openClaims = claims.filter((c) => c.claimSituationId === 1).length;
   const recentClaims = claims.slice(0, 3);
 
   return (
@@ -78,18 +62,14 @@ export default function DashboardScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
     >
       <View style={styles.welcome}>
-        <Text style={styles.welcomeText}>Olá, {user?.name?.split(' ')[0]} 👋</Text>
+        <Text style={styles.welcomeText}>Olá, {user?.name ?? 'Produtor'} 👋</Text>
         <Text style={styles.welcomeSub}>Acompanhe sua lavoura</Text>
       </View>
 
       <View style={styles.statsRow}>
         <StatCard label="Fazendas" value={String(farms.length)} emoji="🌾" />
         <StatCard label="Sinistros" value={String(claims.length)} emoji="📋" />
-        <StatCard
-          label="Pendentes"
-          value={String(claims.filter((c) => c.situation === 'PENDING').length)}
-          emoji="⏳"
-        />
+        <StatCard label="Em aberto" value={String(openClaims)} emoji="⏳" />
       </View>
 
       <View style={styles.section}>
@@ -114,7 +94,7 @@ export default function DashboardScreen() {
             >
               <Text style={styles.cardTitle}>{farm.name}</Text>
               <Text style={styles.cardSub}>
-                {farm.area} ha · {farm.city}, {farm.state}
+                {farm.totalAreaHectares} ha · {farm.state}
               </Text>
             </TouchableOpacity>
           ))
@@ -134,31 +114,26 @@ export default function DashboardScreen() {
         {recentClaims.length === 0 ? (
           <EmptyState message="Nenhum sinistro registrado." icon="📋" />
         ) : (
-          recentClaims.map((claim) => (
-            <TouchableOpacity
-              key={claim.id}
-              style={styles.card}
-              onPress={() => router.push(`/(app)/claims/${claim.id}`)}
-              accessibilityLabel={`Sinistro ${claim.id}`}
-            >
-              <View style={styles.cardRow}>
-                <Text style={styles.cardTitle}>{claim.plotName}</Text>
-                <View
-                  style={[
-                    styles.badge,
-                    { backgroundColor: situationColor[claim.situation] + '20' },
-                  ]}
-                >
-                  <Text
-                    style={[styles.badgeText, { color: situationColor[claim.situation] }]}
-                  >
-                    {situationLabel[claim.situation]}
-                  </Text>
+          recentClaims.map((claim) => {
+            const color = CLAIM_SITUATION_COLOR[claim.claimSituationId] ?? colors.textMuted;
+            const label = CLAIM_SITUATION[claim.claimSituationId] ?? 'Desconhecido';
+            return (
+              <TouchableOpacity
+                key={claim.id}
+                style={styles.card}
+                onPress={() => router.push(`/(app)/claims/${claim.id}`)}
+                accessibilityLabel={`Sinistro ${claim.claimNumber}`}
+              >
+                <View style={styles.cardRow}>
+                  <Text style={styles.cardTitle}>{claim.claimNumber}</Text>
+                  <View style={[styles.badge, { backgroundColor: color + '20' }]}>
+                    <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.cardSub}>{claim.category} · {claim.farmName}</Text>
-            </TouchableOpacity>
-          ))
+                <Text style={styles.cardSub}>{CLAIM_CATEGORY[claim.categoryId] ?? `Cat. ${claim.categoryId}`}</Text>
+              </TouchableOpacity>
+            );
+          })
         )}
       </View>
 
