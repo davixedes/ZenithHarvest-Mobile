@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
 import {
   Claim,
   CLAIM_CATEGORY,
@@ -188,6 +189,7 @@ export default function ClaimDetailScreen() {
             onPress={handleDelete}
             accessibilityLabel="Remover sinistro"
           >
+            <Ionicons name="trash-outline" size={18} color={colors.danger} />
             <Text style={styles.deleteBtnText}>Remover sinistro</Text>
           </TouchableOpacity>
         )}
@@ -215,27 +217,21 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...shadow.sm,
   },
   headerInfo: { gap: spacing.xs },
-  claimNumber: { ...typography.label, fontSize: 16, color: colors.text },
-  claimDate: { ...typography.caption },
+  claimNumber: { ...typography.title, color: colors.text },
+  claimDate: { ...typography.caption, color: colors.textMuted },
   badge: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
-  badgeText: { fontSize: 13, fontWeight: '600' },
+  badgeText: { ...typography.micro },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.sm,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...shadow.sm,
   },
-  sectionTitle: { ...typography.subheading, color: colors.text },
+  sectionTitle: { ...typography.title, color: colors.text },
   timeline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   timelineStep: { alignItems: 'center', flex: 1, position: 'relative' },
   timelineDot: {
@@ -263,9 +259,9 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.borderLight,
   },
   infoLabel: { ...typography.caption, color: colors.textMuted },
   infoValue: { ...typography.body, color: colors.text, fontSize: 14, flexShrink: 1, textAlign: 'right' },
@@ -291,11 +287,15 @@ const styles = StyleSheet.create({
   confidence: { ...typography.caption, textAlign: 'center', marginTop: spacing.xs },
   waitingText: { ...typography.caption, color: colors.textMuted, textAlign: 'center', fontStyle: 'italic' },
   deleteBtn: {
+    flexDirection: 'row',
     borderRadius: radius.md,
     padding: spacing.md,
     alignItems: 'center',
-    borderWidth: 1,
+    justifyContent: 'center',
+    gap: spacing.xs,
+    borderWidth: 1.5,
     borderColor: colors.danger,
+    backgroundColor: colors.dangerBg,
   },
-  deleteBtnText: { color: colors.danger, fontWeight: '600', fontSize: 16 },
+  deleteBtnText: { color: colors.danger, fontWeight: '700', fontSize: 15 },
 });

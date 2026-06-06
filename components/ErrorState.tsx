@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 import { colors, radius, spacing, typography } from '@/constants/theme';
 
 interface Props {
@@ -11,7 +13,10 @@ interface Props {
 export function ErrorState({ message = 'Algo deu errado.', onRetry }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.emoji}>⚠️</Text>
+      <View style={styles.iconWrap}>
+        <Ionicons name="alert-circle" size={32} color={colors.danger} />
+      </View>
+      <Text style={styles.title}>Ops!</Text>
       <Text style={styles.message}>{message}</Text>
       {onRetry && (
         <TouchableOpacity
@@ -19,6 +24,7 @@ export function ErrorState({ message = 'Algo deu errado.', onRetry }: Props) {
           onPress={onRetry}
           accessibilityLabel="Tentar novamente"
         >
+          <Ionicons name="refresh" size={16} color={colors.textOnPrimary} />
           <Text style={styles.buttonText}>Tentar novamente</Text>
         </TouchableOpacity>
       )}
@@ -33,16 +39,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.xl,
     backgroundColor: colors.background,
-    gap: spacing.md,
+    gap: spacing.sm,
   },
-  emoji: { fontSize: 40 },
-  message: { ...typography.body, color: colors.text, textAlign: 'center' },
+  iconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.dangerBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+  },
+  title: { ...typography.title, color: colors.text },
+  message: { ...typography.body, color: colors.textMuted, textAlign: 'center' },
   button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     backgroundColor: colors.primary,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     borderRadius: radius.full,
     marginTop: spacing.sm,
   },
-  buttonText: { color: colors.textOnPrimary, fontWeight: '600' },
+  buttonText: { color: colors.textOnPrimary, fontWeight: '600', fontSize: 14 },
 });

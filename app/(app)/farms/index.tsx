@@ -9,12 +9,13 @@ import {
   View,
 } from 'react-native';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack } from 'expo-router';
 
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
 import { Farm, farmService } from '@/services/farmService';
 
 export default function FarmsScreen() {
@@ -79,10 +80,10 @@ export default function FarmsScreen() {
           headerRight: () => (
             <TouchableOpacity
               onPress={() => router.push('/(app)/farms/new')}
-              style={{ marginRight: spacing.sm }}
+              style={{ marginRight: spacing.sm, padding: 4 }}
               accessibilityLabel="Adicionar nova fazenda"
             >
-              <Text style={{ color: colors.textOnPrimary, fontSize: 28, fontWeight: '300', lineHeight: 32 }}>+</Text>
+              <Ionicons name="add-circle-outline" size={26} color={colors.textOnPrimary} />
             </TouchableOpacity>
           ),
         }}
@@ -94,25 +95,31 @@ export default function FarmsScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
-        ListEmptyComponent={<EmptyState message="Nenhuma fazenda cadastrada." icon="🌾" />}
+        ListEmptyComponent={<EmptyState message="Nenhuma fazenda cadastrada." ionicon="leaf-outline" />}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
             onPress={() => router.push(`/(app)/farms/${item.id}`)}
             accessibilityLabel={`Fazenda ${item.name}`}
           >
+            <View style={styles.cardIcon}>
+              <Ionicons name="leaf" size={20} color={colors.primary} />
+            </View>
             <View style={styles.cardBody}>
               <Text style={styles.cardTitle}>{item.name}</Text>
               <Text style={styles.cardSub}>{item.totalAreaHectares} ha · {item.state}</Text>
               <Text style={styles.cardSub}>CAR: {item.carRegistration}</Text>
             </View>
-            <TouchableOpacity
-              onPress={() => confirmDelete(item)}
-              style={styles.deleteBtn}
-              accessibilityLabel={`Remover fazenda ${item.name}`}
-            >
-              <Text style={styles.deleteText}>🗑</Text>
-            </TouchableOpacity>
+            <View style={styles.cardRight}>
+              <TouchableOpacity
+                onPress={() => confirmDelete(item)}
+                style={styles.deleteBtn}
+                accessibilityLabel={`Remover fazenda ${item.name}`}
+              >
+                <Ionicons name="trash-outline" size={18} color={colors.danger} />
+              </TouchableOpacity>
+              <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
+            </View>
           </TouchableOpacity>
         )}
       />
@@ -129,18 +136,24 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    gap: spacing.sm,
+    ...shadow.sm,
   },
-  cardBody: { flex: 1, gap: spacing.xs },
-  cardTitle: { ...typography.label, fontSize: 16, color: colors.text },
-  cardSub: { ...typography.caption },
+  cardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardBody: { flex: 1, gap: 3 },
+  cardTitle: { ...typography.bodyBold, color: colors.text },
+  cardSub: { ...typography.caption, color: colors.textMuted },
+  cardRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   deleteBtn: {
-    padding: spacing.sm,
-    borderRadius: radius.md,
-    backgroundColor: '#FFF0EB',
+    padding: spacing.xs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.dangerBg,
   },
-  deleteText: { fontSize: 20 },
 });

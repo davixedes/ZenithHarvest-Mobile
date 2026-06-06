@@ -13,11 +13,13 @@ import {
   View,
 } from 'react-native';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 
+import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
 import { Farm, farmService } from '@/services/farmService';
 import { CreatePlotPayload, Plot, plotService, PLOT_SITUATION, PLOT_SITUATION_COLOR } from '@/services/plotService';
 
@@ -204,14 +206,13 @@ export default function FarmDetailScreen() {
               style={styles.addPlotBtn}
               accessibilityLabel="Adicionar talhão"
             >
-              <Text style={styles.addPlotBtnText}>+ Novo talhão</Text>
+              <Ionicons name="add" size={14} color={colors.primary} />
+              <Text style={styles.addPlotBtnText}>Novo talhão</Text>
             </TouchableOpacity>
           </View>
 
           {plots.length === 0 ? (
-            <View style={styles.emptyPlots}>
-              <Text style={styles.emptyText}>Nenhum talhão cadastrado.</Text>
-            </View>
+            <EmptyState message="Nenhum talhão cadastrado." ionicon="apps-outline" />
           ) : (
             plots.map((plot) => {
               const color = PLOT_SITUATION_COLOR[plot.plotSituationId] ?? colors.textMuted;
@@ -224,7 +225,7 @@ export default function FarmDetailScreen() {
                       <Text style={styles.plotSub}>{plot.areaHectares != null ? `${plot.areaHectares} ha` : '— ha'}</Text>
                     </View>
                     <View style={styles.plotActions}>
-                      <View style={[styles.badge, { backgroundColor: color + '20' }]}>
+                      <View style={[styles.badge, { backgroundColor: color + '18' }]}>
                         <Text style={[styles.badgeText, { color }]}>{label}</Text>
                       </View>
                       <TouchableOpacity
@@ -232,7 +233,7 @@ export default function FarmDetailScreen() {
                         style={styles.deletePlotBtn}
                         accessibilityLabel={`Remover talhão ${plot.identifier}`}
                       >
-                        <Text style={styles.deletePlotText}>🗑</Text>
+                        <Ionicons name="trash-outline" size={16} color={colors.danger} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -247,7 +248,8 @@ export default function FarmDetailScreen() {
           onPress={() => router.push('/(app)/claims/new')}
           accessibilityLabel="Abrir sinistro nessa fazenda"
         >
-          <Text style={styles.newClaimText}>📋 Abrir Sinistro</Text>
+          <Ionicons name="document-text-outline" size={18} color={colors.primary} />
+          <Text style={styles.newClaimText}>Abrir Sinistro</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -360,38 +362,29 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.md,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...shadow.sm,
   },
-  sectionTitle: { ...typography.subheading, color: colors.text },
+  sectionTitle: { ...typography.title, color: colors.text },
   section: { gap: spacing.sm },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   addPlotBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
-    backgroundColor: colors.primary + '15',
+    backgroundColor: colors.primaryLight,
     borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.primary + '40',
   },
   addPlotBtnText: { color: colors.primary, fontWeight: '600', fontSize: 13 },
-  emptyPlots: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-  },
-  emptyText: { ...typography.caption, color: colors.textMuted },
   field: { gap: spacing.xs },
-  label: { ...typography.label, color: colors.text },
+  label: { ...typography.label, color: colors.textSecondary },
   input: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: radius.md,
     padding: spacing.md,
-    fontSize: 16,
+    fontSize: 15,
     color: colors.text,
     backgroundColor: colors.background,
   },
@@ -402,13 +395,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.textOnPrimary, fontWeight: '600', fontSize: 16 },
+  buttonText: { color: colors.textOnPrimary, fontWeight: '700', fontSize: 16 },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.borderLight,
   },
   infoLabel: { ...typography.caption, color: colors.textMuted },
   infoValue: { ...typography.body, color: colors.text, fontSize: 15 },
@@ -416,34 +409,32 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    ...shadow.sm,
   },
   plotRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  plotInfo: { flex: 1, gap: spacing.xs },
-  plotName: { ...typography.label, color: colors.text },
-  plotSub: { ...typography.caption },
+  plotInfo: { flex: 1, gap: 3 },
+  plotName: { ...typography.bodyBold, color: colors.text },
+  plotSub: { ...typography.caption, color: colors.textMuted },
   plotActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.full },
-  badgeText: { fontSize: 12, fontWeight: '600' },
+  badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
+  badgeText: { ...typography.micro },
   deletePlotBtn: {
     padding: spacing.xs,
     borderRadius: radius.sm,
-    backgroundColor: '#FFF0EB',
+    backgroundColor: colors.dangerBg,
   },
-  deletePlotText: { fontSize: 16 },
   newClaimBtn: {
+    flexDirection: 'row',
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
     alignItems: 'center',
-    borderWidth: 1,
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderWidth: 1.5,
     borderColor: colors.primary,
   },
-  newClaimText: { color: colors.primary, fontWeight: '600', fontSize: 16 },
-  // modal
+  newClaimText: { color: colors.primary, fontWeight: '700', fontSize: 15 },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -451,12 +442,12 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     padding: spacing.lg,
     gap: spacing.md,
   },
-  modalTitle: { ...typography.subheading, color: colors.text },
+  modalTitle: { ...typography.title, color: colors.text },
   modalActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
   modalCancel: {
     flex: 1,
@@ -464,7 +455,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     backgroundColor: colors.background,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
   },
   modalCancelText: { color: colors.textMuted, fontWeight: '600' },
@@ -475,5 +466,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.primary,
   },
-  modalConfirmText: { color: colors.textOnPrimary, fontWeight: '600' },
+  modalConfirmText: { color: colors.textOnPrimary, fontWeight: '700' },
 });

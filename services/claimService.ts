@@ -51,11 +51,11 @@ export const CLAIM_SITUATION: Record<number, string> = {
 };
 
 export const CLAIM_SITUATION_COLOR: Record<number, string> = {
-  1: '#EF9F27',
-  2: '#3B82F6',
-  3: '#1D9E75',
-  4: '#D85A30',
-  5: '#0F6E56',
+  1: '#EF6800',
+  2: '#0063F7',
+  3: '#00B131',
+  4: '#FF5449',
+  5: '#006E1B',
 };
 
 /** IDs do seed: 1=Geada, 2=Seca, 3=Granizo, 4=Inundação, 5=Praga */

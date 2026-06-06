@@ -31,11 +31,11 @@ export const PLOT_SITUATION: Record<number, string> = {
 };
 
 export const PLOT_SITUATION_COLOR: Record<number, string> = {
-  1: '#888780',
-  2: '#1D9E75',
-  3: '#1D9E75',
-  4: '#3B82F6',
-  5: '#D85A30',
+  1: '#8F8F8F',
+  2: '#00B131',
+  3: '#00B131',
+  4: '#0063F7',
+  5: '#FF5449',
 };
 
 export const plotService = {

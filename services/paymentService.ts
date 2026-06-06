@@ -23,11 +23,11 @@ export const PAYMENT_SITUATION: Record<number, string> = {
 };
 
 export const PAYMENT_SITUATION_COLOR: Record<number, string> = {
-  1: '#EF9F27',
-  2: '#3B82F6',
-  3: '#1D9E75',
-  4: '#D85A30',
-  5: '#888780',
+  1: '#EF6800',
+  2: '#0063F7',
+  3: '#00B131',
+  4: '#FF5449',
+  5: '#8F8F8F',
 };
 
 export const paymentService = {

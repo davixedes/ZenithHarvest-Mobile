@@ -11,10 +11,12 @@ import {
   View,
 } from 'react-native';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import axios from 'axios';
 
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, gradients, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useAuthContext } from '@/store/authContext';
 
 export default function LoginScreen() {
@@ -22,6 +24,7 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,7 +41,7 @@ export default function LoginScreen() {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         setError('E-mail ou senha incorretos.');
       } else {
-        setError('Falha ao conectar com o servidor.');
+        setError('Falha ao conectar. Verifique sua conexão.');
       }
     } finally {
       setLoading(false);
@@ -52,60 +55,91 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.logo}>🌱</Text>
-          <Text style={styles.title}>Zenith Harvest</Text>
-          <Text style={styles.subtitle}>Seguro agrícola paramétrico</Text>
+          <View style={styles.brandMark}>
+            <Ionicons name="leaf" size={28} color={colors.textOnPrimary} />
+          </View>
+          <Text style={styles.brandName}>Zenith Harvest</Text>
+          <Text style={styles.brandSub}>Seguro agrícola paramétrico</Text>
         </View>
 
-        <View style={styles.form}>
-          <Text style={styles.formTitle}>Entrar</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Entrar na conta</Text>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? (
+            <View style={styles.errorBox}>
+              <Ionicons name="alert-circle-outline" size={16} color={colors.danger} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
 
           <View style={styles.field}>
             <Text style={styles.label}>E-mail</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-              placeholder="seu@email.com"
-              placeholderTextColor={colors.textMuted}
-              accessibilityLabel="Campo e-mail"
-            />
+            <View style={styles.inputWrap}>
+              <Ionicons name="mail-outline" size={18} color={colors.textLight} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+                placeholder="seu@email.com"
+                placeholderTextColor={colors.textLight}
+                accessibilityLabel="Campo e-mail"
+              />
+            </View>
           </View>
 
           <View style={styles.field}>
             <Text style={styles.label}>Senha</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoComplete="password"
-              placeholder="••••••••"
-              placeholderTextColor={colors.textMuted}
-              accessibilityLabel="Campo senha"
-            />
+            <View style={styles.inputWrap}>
+              <Ionicons name="lock-closed-outline" size={18} color={colors.textLight} style={styles.inputIcon} />
+              <TextInput
+                style={[styles.input, styles.inputWithToggle]}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoComplete="password"
+                placeholder="Sua senha"
+                placeholderTextColor={colors.textLight}
+                accessibilityLabel="Campo senha"
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword((v) => !v)}
+                style={styles.eyeBtn}
+                accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={18}
+                  color={colors.textLight}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleLogin}
             disabled={loading}
             accessibilityLabel="Entrar"
+            style={loading ? styles.buttonDisabledWrap : undefined}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.textOnPrimary} />
-            ) : (
-              <Text style={styles.buttonText}>Entrar</Text>
-            )}
+            <LinearGradient
+              colors={gradients.primary}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.button}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.textOnGradient} />
+              ) : (
+                <Text style={styles.buttonText}>Entrar</Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Ainda não tem conta? </Text>
+            <Text style={styles.footerText}>Não tem conta? </Text>
             <Link href="/(auth)/signup" asChild>
               <TouchableOpacity accessibilityLabel="Criar conta">
                 <Text style={styles.link}>Cadastre-se</Text>
@@ -119,7 +153,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.background },
+  flex: { flex: 1, backgroundColor: colors.primary },
   container: {
     flexGrow: 1,
     padding: spacing.lg,
@@ -127,54 +161,65 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
   },
   header: { alignItems: 'center', gap: spacing.sm },
-  logo: { fontSize: 56 },
-  title: { ...typography.heading, fontSize: 28, color: colors.primary },
-  subtitle: { ...typography.body, color: colors.textMuted },
-  form: {
+  brandMark: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandName: { fontSize: 26, fontWeight: '800', color: colors.textOnPrimary, letterSpacing: -0.5 },
+  brandSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14 },
+  card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing.lg,
     gap: spacing.md,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    ...shadow.md,
   },
-  formTitle: { ...typography.subheading, color: colors.text },
-  error: {
-    color: colors.danger,
-    fontSize: 14,
-    backgroundColor: '#FFF0EB',
+  cardTitle: { ...typography.title, color: colors.text, marginBottom: spacing.xs },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.dangerBg,
     padding: spacing.sm,
     borderRadius: radius.sm,
   },
+  errorText: { color: colors.danger, fontSize: 13, flex: 1 },
   field: { gap: spacing.xs },
-  label: { ...typography.label, color: colors.text },
-  input: {
-    borderWidth: 1,
+  label: { ...typography.label, color: colors.textSecondary },
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 16,
-    color: colors.text,
     backgroundColor: colors.background,
   },
-  button: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
+  inputIcon: { paddingLeft: spacing.sm },
+  input: {
+    flex: 1,
     padding: spacing.md,
+    fontSize: 15,
+    color: colors.text,
+  },
+  inputWithToggle: { paddingRight: 0 },
+  eyeBtn: { padding: spacing.sm },
+  buttonDisabledWrap: { opacity: 0.6 },
+  button: {
+    borderRadius: radius.xl,
+    paddingVertical: spacing.md,
     alignItems: 'center',
     marginTop: spacing.xs,
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.textOnPrimary, fontWeight: '600', fontSize: 16 },
+  buttonText: { color: colors.textOnGradient, fontWeight: '700', fontSize: 16 },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: spacing.xs,
   },
-  footerText: { color: colors.textMuted },
-  link: { color: colors.primary, fontWeight: '600' },
+  footerText: { color: colors.textMuted, fontSize: 14 },
+  link: { color: colors.primary, fontWeight: '700', fontSize: 14 },
 });
