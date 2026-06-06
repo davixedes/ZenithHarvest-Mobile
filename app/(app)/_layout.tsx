@@ -102,13 +102,6 @@ export default function AppLayout() {
         }}
       />
 
-      {/* ── Rotas internas — ocultadas do tab bar ─────────────── */}
-      <Tabs.Screen name="farms/index"    options={{ href: null }} />
-      <Tabs.Screen name="farms/new"      options={{ href: null }} />
-      <Tabs.Screen name="farms/[id]"     options={{ href: null }} />
-      <Tabs.Screen name="claims/index"   options={{ href: null }} />
-      <Tabs.Screen name="claims/new"     options={{ href: null }} />
-      <Tabs.Screen name="claims/[id]"    options={{ href: null }} />
     </Tabs>
   );
 }
