@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { NdviHealthStrip } from '@/components/NdviHealthStrip';
-import { SwipeDeleteRow } from '@/components/SwipeDeleteRow';
+import { ScreenContainer } from '@/components/ScreenContainer';
 import { useToast } from '@/components/Toast';
 import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
@@ -72,7 +72,7 @@ export default function ClaimsScreen() {
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   return (
-    <>
+    <ScreenContainer>
       <Stack.Screen
         options={{
           title: 'Sinistros',
@@ -89,7 +89,7 @@ export default function ClaimsScreen() {
         }}
       />
       <FlatList
-        style={{ flex: 1, backgroundColor: colors.background }}
+        style={{ flex: 1 }}
         data={claims}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, claims.length === 0 && styles.listEmpty]}
@@ -102,7 +102,7 @@ export default function ClaimsScreen() {
           const canDelete = item.claimSituationId === 1;
 
           return (
-            <SwipeDeleteRow enabled={canDelete} onDelete={() => confirmDelete(item)}>
+            <View style={styles.row}>
               <TouchableOpacity
                 style={styles.card}
                 onPress={() => router.push(`/(app)/claims/${item.id}`)}
@@ -124,34 +124,50 @@ export default function ClaimsScreen() {
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
               </TouchableOpacity>
-            </SwipeDeleteRow>
+              {canDelete ? (
+                <TouchableOpacity
+                  onPress={() => confirmDelete(item)}
+                  style={styles.deleteBtn}
+                  accessibilityLabel={`Remover sinistro ${item.claimNumber}`}
+                >
+                  <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                </TouchableOpacity>
+              ) : null}
+            </View>
           );
         }}
       />
-    </>
+    </ScreenContainer>
   );
 }
 
 function makeStyles(c: ReturnType<typeof useColors>) {
   return StyleSheet.create({
-    list: { padding: spacing.md, gap: spacing.sm },
-    listEmpty: { flex: 1 },
+    list: { padding: spacing.md, paddingBottom: spacing.lg },
+    listEmpty: { flexGrow: 1 },
+    row: { flexDirection: 'row', alignItems: 'stretch', gap: spacing.sm, marginBottom: spacing.sm },
     card: {
+      flex: 1,
       backgroundColor: c.surface,
       borderRadius: radius.md,
       flexDirection: 'row',
       alignItems: 'center',
       overflow: 'hidden',
-      gap: spacing.sm,
       ...shadow.sm,
     },
     statusAccent: { width: 4, alignSelf: 'stretch' },
-    cardBody: { flex: 1, paddingVertical: spacing.md, gap: 4 },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    cardBody: { flex: 1, paddingVertical: spacing.md, paddingHorizontal: spacing.sm },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
     cardTitle: { ...typography.bodyBold, color: c.text },
-    cardSub: { ...typography.caption, color: c.textMuted },
-    cardDate: { ...typography.micro, color: c.textLight, marginTop: 2 },
+    cardSub: { ...typography.caption, color: c.textMuted, marginBottom: 2 },
+    cardDate: { ...typography.micro, color: c.textLight, marginTop: 4 },
     badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
     badgeText: { ...typography.micro },
+    deleteBtn: {
+      alignSelf: 'center',
+      padding: spacing.sm,
+      borderRadius: radius.sm,
+      backgroundColor: c.dangerBg,
+    },
   });
 }

@@ -7,6 +7,7 @@ import { Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
+import { ScreenContainer } from '@/components/ScreenContainer';
 import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -48,10 +49,10 @@ export default function PaymentsScreen() {
   const total = payments.filter((p) => p.paymentSituationId === 3).reduce((s, p) => s + p.amount, 0);
 
   return (
-    <>
+    <ScreenContainer>
       <Stack.Screen options={{ title: 'Pagamentos', headerShown: true }} />
       <FlatList
-        style={{ flex: 1, backgroundColor: colors.background }}
+        style={{ flex: 1 }}
         data={payments}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, payments.length === 0 && styles.listEmpty]}
@@ -104,14 +105,14 @@ export default function PaymentsScreen() {
           );
         }}
       />
-    </>
+    </ScreenContainer>
   );
 }
 
 function makeStyles(c: ReturnType<typeof useColors>) {
   return StyleSheet.create({
-    list: { padding: spacing.md, gap: spacing.sm },
-    listEmpty: { flex: 1 },
+    list: { padding: spacing.md, paddingBottom: spacing.lg },
+    listEmpty: { flexGrow: 1 },
     summaryCard: {
       backgroundColor: c.primary,
       borderRadius: radius.lg,

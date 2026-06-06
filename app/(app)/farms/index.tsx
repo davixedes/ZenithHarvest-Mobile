@@ -7,7 +7,7 @@ import { router, Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { SwipeDeleteRow } from '@/components/SwipeDeleteRow';
+import { ScreenContainer } from '@/components/ScreenContainer';
 import { useToast } from '@/components/Toast';
 import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
@@ -75,7 +75,7 @@ export default function FarmsScreen() {
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   return (
-    <>
+    <ScreenContainer>
       <Stack.Screen
         options={{
           title: 'Minhas Fazendas',
@@ -92,14 +92,14 @@ export default function FarmsScreen() {
         }}
       />
       <FlatList
-        style={{ flex: 1, backgroundColor: colors.background }}
+        style={{ flex: 1 }}
         data={farms}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, farms.length === 0 && styles.listEmpty]}
         refreshControl={<ZenithRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={<EmptyState message="Nenhuma fazenda cadastrada." ionicon="leaf-outline" />}
         renderItem={({ item }) => (
-          <SwipeDeleteRow onDelete={() => confirmDelete(item)}>
+          <View style={styles.row}>
             <TouchableOpacity
               style={styles.card}
               onPress={() => router.push(`/(app)/farms/${item.id}`)}
@@ -115,18 +115,27 @@ export default function FarmsScreen() {
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
             </TouchableOpacity>
-          </SwipeDeleteRow>
+            <TouchableOpacity
+              onPress={() => confirmDelete(item)}
+              style={styles.deleteBtn}
+              accessibilityLabel={`Remover fazenda ${item.name}`}
+            >
+              <Ionicons name="trash-outline" size={18} color={colors.danger} />
+            </TouchableOpacity>
+          </View>
         )}
       />
-    </>
+    </ScreenContainer>
   );
 }
 
 function makeStyles(c: ReturnType<typeof useColors>) {
   return StyleSheet.create({
-    list: { padding: spacing.md, gap: spacing.sm },
-    listEmpty: { flex: 1 },
+    list: { padding: spacing.md, paddingBottom: spacing.lg },
+    listEmpty: { flexGrow: 1 },
+    row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
     card: {
+      flex: 1,
       backgroundColor: c.surface,
       borderRadius: radius.md,
       padding: spacing.md,
@@ -143,8 +152,13 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    cardBody: { flex: 1, gap: 3 },
-    cardTitle: { ...typography.bodyBold, color: c.text },
+    cardBody: { flex: 1 },
+    cardTitle: { ...typography.bodyBold, color: c.text, marginBottom: 3 },
     cardSub: { ...typography.caption, color: c.textMuted },
+    deleteBtn: {
+      padding: spacing.sm,
+      borderRadius: radius.sm,
+      backgroundColor: c.dangerBg,
+    },
   });
 }
