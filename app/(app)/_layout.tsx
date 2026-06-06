@@ -54,6 +54,7 @@ export default function AppLayout() {
         name="index"
         options={{
           title: 'Início',
+          headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon name={{ active: 'home', inactive: 'home-outline' }} focused={focused} />
           ),
@@ -63,6 +64,7 @@ export default function AppLayout() {
         name="farms"
         options={{
           title: 'Fazendas',
+          headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon name={{ active: 'leaf', inactive: 'leaf-outline' }} focused={focused} />
           ),
@@ -72,6 +74,7 @@ export default function AppLayout() {
         name="claims"
         options={{
           title: 'Sinistros',
+          headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon
               name={{ active: 'document-text', inactive: 'document-text-outline' }}
