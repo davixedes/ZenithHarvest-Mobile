@@ -72,7 +72,21 @@ export default function FarmsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Minhas Fazendas', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Minhas Fazendas',
+          headerShown: true,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => router.push('/(app)/farms/new')}
+              style={{ marginRight: spacing.sm }}
+              accessibilityLabel="Adicionar nova fazenda"
+            >
+              <Text style={{ color: colors.textOnPrimary, fontSize: 28, fontWeight: '300', lineHeight: 32 }}>+</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
       <FlatList
         data={farms}
         keyExtractor={(item) => item.id}

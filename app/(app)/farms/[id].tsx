@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -18,7 +19,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { Farm, farmService } from '@/services/farmService';
-import { Plot, plotService, PLOT_SITUATION, PLOT_SITUATION_COLOR } from '@/services/plotService';
+import { CreatePlotPayload, Plot, plotService, PLOT_SITUATION, PLOT_SITUATION_COLOR } from '@/services/plotService';
 
 export default function FarmDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,11 +30,18 @@ export default function FarmDetailScreen() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // edit form fields
   const [name, setName] = useState('');
   const [carRegistration, setCarRegistration] = useState('');
   const [nirf, setNirf] = useState('');
   const [totalAreaHectares, setTotalAreaHectares] = useState('');
   const [state, setState] = useState('');
+
+  // new plot modal
+  const [plotModal, setPlotModal] = useState(false);
+  const [plotIdentifier, setPlotIdentifier] = useState('');
+  const [plotArea, setPlotArea] = useState('');
+  const [savingPlot, setSavingPlot] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -85,6 +93,49 @@ export default function FarmDetailScreen() {
     }
   }
 
+  async function handleAddPlot() {
+    if (!plotIdentifier.trim()) {
+      Alert.alert('Atenção', 'Identificador do talhão é obrigatório.');
+      return;
+    }
+    setSavingPlot(true);
+    try {
+      const payload: CreatePlotPayload = {
+        farmId: id,
+        identifier: plotIdentifier.trim(),
+        plotSituationId: 1,
+        areaHectares: plotArea ? parseFloat(plotArea) : undefined,
+      };
+      const newPlot = await plotService.create(payload);
+      setPlots((prev) => [...prev, newPlot]);
+      setPlotModal(false);
+      setPlotIdentifier('');
+      setPlotArea('');
+    } catch {
+      Alert.alert('Erro', 'Não foi possível cadastrar o talhão.');
+    } finally {
+      setSavingPlot(false);
+    }
+  }
+
+  function confirmDeletePlot(plot: Plot) {
+    Alert.alert('Remover talhão', `Deseja remover o talhão "${plot.identifier}"?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Remover',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await plotService.delete(plot.id);
+            setPlots((prev) => prev.filter((p) => p.id !== plot.id));
+          } catch {
+            Alert.alert('Erro', 'Não foi possível remover o talhão.');
+          }
+        },
+      },
+    ]);
+  }
+
   if (loading) return <LoadingState />;
   if (error || !farm) return <ErrorState message={error} onRetry={load} />;
 
@@ -126,11 +177,10 @@ export default function FarmDetailScreen() {
               disabled={saving}
               accessibilityLabel="Salvar fazenda"
             >
-              {saving ? (
-                <ActivityIndicator color={colors.textOnPrimary} />
-              ) : (
-                <Text style={styles.buttonText}>Salvar alterações</Text>
-              )}
+              {saving
+                ? <ActivityIndicator color={colors.textOnPrimary} />
+                : <Text style={styles.buttonText}>Salvar alterações</Text>
+              }
             </TouchableOpacity>
           </View>
         ) : (
@@ -146,26 +196,51 @@ export default function FarmDetailScreen() {
           </View>
         )}
 
-        {plots.length > 0 && (
-          <View style={styles.section}>
+        <View style={styles.section}>
+          <View style={styles.rowBetween}>
             <Text style={styles.sectionTitle}>Talhões ({plots.length})</Text>
-            {plots.map((plot) => {
+            <TouchableOpacity
+              onPress={() => setPlotModal(true)}
+              style={styles.addPlotBtn}
+              accessibilityLabel="Adicionar talhão"
+            >
+              <Text style={styles.addPlotBtnText}>+ Novo talhão</Text>
+            </TouchableOpacity>
+          </View>
+
+          {plots.length === 0 ? (
+            <View style={styles.emptyPlots}>
+              <Text style={styles.emptyText}>Nenhum talhão cadastrado.</Text>
+            </View>
+          ) : (
+            plots.map((plot) => {
               const color = PLOT_SITUATION_COLOR[plot.plotSituationId] ?? colors.textMuted;
               const label = PLOT_SITUATION[plot.plotSituationId] ?? `Situação ${plot.plotSituationId}`;
               return (
                 <View key={plot.id} style={styles.plotCard}>
                   <View style={styles.plotRow}>
-                    <Text style={styles.plotName}>{plot.identifier}</Text>
-                    <View style={[styles.badge, { backgroundColor: color + '20' }]}>
-                      <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                    <View style={styles.plotInfo}>
+                      <Text style={styles.plotName}>{plot.identifier}</Text>
+                      <Text style={styles.plotSub}>{plot.areaHectares != null ? `${plot.areaHectares} ha` : '— ha'}</Text>
+                    </View>
+                    <View style={styles.plotActions}>
+                      <View style={[styles.badge, { backgroundColor: color + '20' }]}>
+                        <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => confirmDeletePlot(plot)}
+                        style={styles.deletePlotBtn}
+                        accessibilityLabel={`Remover talhão ${plot.identifier}`}
+                      >
+                        <Text style={styles.deletePlotText}>🗑</Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
-                  <Text style={styles.plotSub}>{plot.areaHectares ?? '—'} ha</Text>
                 </View>
               );
-            })}
-          </View>
-        )}
+            })
+          )}
+        </View>
 
         <TouchableOpacity
           style={styles.newClaimBtn}
@@ -175,6 +250,69 @@ export default function FarmDetailScreen() {
           <Text style={styles.newClaimText}>📋 Abrir Sinistro</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Modal novo talhão */}
+      <Modal
+        visible={plotModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPlotModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalTitle}>Novo Talhão</Text>
+
+              <View style={styles.field}>
+                <Text style={styles.label}>Identificador *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={plotIdentifier}
+                  onChangeText={setPlotIdentifier}
+                  placeholder="Ex: Talhão A, Bloco 01"
+                  placeholderTextColor={colors.textMuted}
+                  accessibilityLabel="Identificador do talhão"
+                  autoFocus
+                />
+              </View>
+
+              <View style={styles.field}>
+                <Text style={styles.label}>Área (hectares)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={plotArea}
+                  onChangeText={setPlotArea}
+                  placeholder="Ex: 25.5"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="numeric"
+                  accessibilityLabel="Área do talhão"
+                />
+              </View>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.modalCancel}
+                  onPress={() => { setPlotModal(false); setPlotIdentifier(''); setPlotArea(''); }}
+                  accessibilityLabel="Cancelar"
+                >
+                  <Text style={styles.modalCancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalConfirm, savingPlot && styles.buttonDisabled]}
+                  onPress={handleAddPlot}
+                  disabled={savingPlot}
+                  accessibilityLabel="Salvar talhão"
+                >
+                  {savingPlot
+                    ? <ActivityIndicator color={colors.textOnPrimary} />
+                    : <Text style={styles.modalConfirmText}>Salvar</Text>
+                  }
+                </TouchableOpacity>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -229,6 +367,23 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { ...typography.subheading, color: colors.text },
   section: { gap: spacing.sm },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  addPlotBtn: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.primary + '15',
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
+  },
+  addPlotBtnText: { color: colors.primary, fontWeight: '600', fontSize: 13 },
+  emptyPlots: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    alignItems: 'center',
+  },
+  emptyText: { ...typography.caption, color: colors.textMuted },
   field: { gap: spacing.xs },
   label: { ...typography.label, color: colors.text },
   input: {
@@ -261,17 +416,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
-    gap: spacing.xs,
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 4,
     elevation: 1,
   },
   plotRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  plotInfo: { flex: 1, gap: spacing.xs },
   plotName: { ...typography.label, color: colors.text },
   plotSub: { ...typography.caption },
+  plotActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   badge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.full },
   badgeText: { fontSize: 12, fontWeight: '600' },
+  deletePlotBtn: {
+    padding: spacing.xs,
+    borderRadius: radius.sm,
+    backgroundColor: '#FFF0EB',
+  },
+  deletePlotText: { fontSize: 16 },
   newClaimBtn: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -281,4 +443,37 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   newClaimText: { color: colors.primary, fontWeight: '600', fontSize: 16 },
+  // modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  modalTitle: { ...typography.subheading, color: colors.text },
+  modalActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  modalCancel: {
+    flex: 1,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalCancelText: { color: colors.textMuted, fontWeight: '600' },
+  modalConfirm: {
+    flex: 1,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+  },
+  modalConfirmText: { color: colors.textOnPrimary, fontWeight: '600' },
 });
