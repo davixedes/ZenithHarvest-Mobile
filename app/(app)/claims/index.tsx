@@ -7,23 +7,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { colors, radius, spacing, typography } from '@/constants/theme';
-import { Claim, claimService, ClaimSituation } from '@/services/claimService';
-
-const situationLabel: Record<ClaimSituation, string> = {
-  PENDING: 'Pendente',
-  UNDER_ANALYSIS: 'Em análise',
-  APPROVED: 'Aprovado',
-  REJECTED: 'Reprovado',
-  PAID: 'Pago',
-};
-
-const situationColor: Record<ClaimSituation, string> = {
-  PENDING: colors.warning,
-  UNDER_ANALYSIS: '#3B82F6',
-  APPROVED: colors.success,
-  REJECTED: colors.danger,
-  PAID: colors.primary,
-};
+import { Claim, CLAIM_CATEGORY, CLAIM_SITUATION, CLAIM_SITUATION_COLOR, claimService } from '@/services/claimService';
 
 export default function ClaimsScreen() {
   const [claims, setClaims] = useState<Claim[]>([]);
@@ -71,33 +55,29 @@ export default function ClaimsScreen() {
           />
         }
         ListEmptyComponent={<EmptyState message="Nenhum sinistro registrado." icon="📋" />}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push(`/(app)/claims/${item.id}`)}
-            accessibilityLabel={`Sinistro ${item.id}`}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>{item.plotName}</Text>
-              <View
-                style={[
-                  styles.badge,
-                  { backgroundColor: situationColor[item.situation] + '20' },
-                ]}
-              >
-                <Text style={[styles.badgeText, { color: situationColor[item.situation] }]}>
-                  {situationLabel[item.situation]}
-                </Text>
+        renderItem={({ item }) => {
+          const color = CLAIM_SITUATION_COLOR[item.claimSituationId] ?? colors.textMuted;
+          const label = CLAIM_SITUATION[item.claimSituationId] ?? 'Desconhecido';
+          const category = CLAIM_CATEGORY[item.categoryId] ?? `Cat. ${item.categoryId}`;
+          return (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/(app)/claims/${item.id}`)}
+              accessibilityLabel={`Sinistro ${item.claimNumber}`}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>{item.claimNumber}</Text>
+                <View style={[styles.badge, { backgroundColor: color + '20' }]}>
+                  <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                </View>
               </View>
-            </View>
-            <Text style={styles.cardSub}>
-              {item.category} · {item.farmName}
-            </Text>
-            <Text style={styles.cardDate}>
-              {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-            </Text>
-          </TouchableOpacity>
-        )}
+              <Text style={styles.cardSub}>{category}</Text>
+              <Text style={styles.cardDate}>
+                {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+              </Text>
+            </TouchableOpacity>
+          );
+        }}
       />
     </>
   );

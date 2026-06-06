@@ -7,21 +7,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { colors, radius, spacing, typography } from '@/constants/theme';
-import { Payment, paymentService, PaymentStatus } from '@/services/paymentService';
-
-const statusLabel: Record<PaymentStatus, string> = {
-  PENDING: 'Pendente',
-  PROCESSING: 'Processando',
-  COMPLETED: 'Concluído',
-  FAILED: 'Falhou',
-};
-
-const statusColor: Record<PaymentStatus, string> = {
-  PENDING: colors.warning,
-  PROCESSING: '#3B82F6',
-  COMPLETED: colors.success,
-  FAILED: colors.danger,
-};
+import { Payment, paymentService, PAYMENT_SITUATION, PAYMENT_SITUATION_COLOR } from '@/services/paymentService';
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -67,7 +53,7 @@ export default function PaymentsScreen() {
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   const total = payments
-    .filter((p) => p.status === 'COMPLETED')
+    .filter((p) => p.paymentSituationId === 3)
     .reduce((sum, p) => sum + p.amount, 0);
 
   return (
@@ -87,33 +73,32 @@ export default function PaymentsScreen() {
         ListHeaderComponent={
           payments.length > 0 ? (
             <View style={styles.totalCard}>
-              <Text style={styles.totalLabel}>Total recebido via PIX</Text>
+              <Text style={styles.totalLabel}>Total recebido</Text>
               <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
             </View>
           ) : null
         }
         ListEmptyComponent={<EmptyState message="Nenhum pagamento registrado." icon="💸" />}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View style={styles.cardRow}>
-              <Text style={styles.amount}>{formatCurrency(item.amount)}</Text>
-              <View
-                style={[styles.badge, { backgroundColor: statusColor[item.status] + '20' }]}
-              >
-                <Text style={[styles.badgeText, { color: statusColor[item.status] }]}>
-                  {statusLabel[item.status]}
-                </Text>
+        renderItem={({ item }) => {
+          const color = PAYMENT_SITUATION_COLOR[item.paymentSituationId] ?? colors.textMuted;
+          const label = PAYMENT_SITUATION[item.paymentSituationId] ?? 'Desconhecido';
+          return (
+            <View style={styles.card}>
+              <View style={styles.cardRow}>
+                <Text style={styles.amount}>{formatCurrency(item.amount)}</Text>
+                <View style={[styles.badge, { backgroundColor: color + '20' }]}>
+                  <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                </View>
               </View>
+              {item.paymentDate ? (
+                <Text style={styles.date}>Pago em {formatDate(item.paymentDate)}</Text>
+              ) : (
+                <Text style={styles.date}>Criado em {formatDate(item.createdAt)}</Text>
+              )}
+              {item.pixKey && <Text style={styles.pix}>PIX: {item.pixKey}</Text>}
             </View>
-            {item.paidAt && (
-              <Text style={styles.date}>Pago em {formatDate(item.paidAt)}</Text>
-            )}
-            {!item.paidAt && (
-              <Text style={styles.date}>Criado em {formatDate(item.createdAt)}</Text>
-            )}
-            {item.pixKey && <Text style={styles.pix}>PIX: {item.pixKey}</Text>}
-          </View>
-        )}
+          );
+        }}
       />
     </>
   );

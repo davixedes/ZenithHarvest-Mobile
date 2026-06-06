@@ -1,30 +1,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { colors, radius, spacing, typography } from '@/constants/theme';
-import { Claim, claimService, ClaimSituation } from '@/services/claimService';
+import {
+  Claim,
+  CLAIM_CATEGORY,
+  CLAIM_SITUATION,
+  CLAIM_SITUATION_COLOR,
+  CLAIM_SUBCATEGORY,
+  claimService,
+} from '@/services/claimService';
 
-const situationLabel: Record<ClaimSituation, string> = {
-  PENDING: 'Pendente',
-  UNDER_ANALYSIS: 'Em análise',
-  APPROVED: 'Aprovado',
-  REJECTED: 'Reprovado',
-  PAID: 'Pago',
-};
-
-const situationColor: Record<ClaimSituation, string> = {
-  PENDING: colors.warning,
-  UNDER_ANALYSIS: '#3B82F6',
-  APPROVED: colors.success,
-  REJECTED: colors.danger,
-  PAID: colors.primary,
-};
-
-const TIMELINE: ClaimSituation[] = ['PENDING', 'UNDER_ANALYSIS', 'APPROVED', 'PAID'];
+const TIMELINE_IDS = [1, 2, 3, 5]; // Aberto → Em análise → Aprovado → Pago
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -46,7 +37,7 @@ function NdviBar({ label, value }: { label: string; value: number }) {
     <View style={styles.ndviRow}>
       <Text style={styles.ndviLabel}>{label}</Text>
       <View style={styles.ndviTrack}>
-        <View style={[styles.ndviFill, { width: `${pct * 100}%` }]} />
+        <View style={[styles.ndviFill, { width: `${pct * 100}%` as any }]} />
       </View>
       <Text style={styles.ndviValue}>{value.toFixed(3)}</Text>
     </View>
@@ -75,84 +66,103 @@ export default function ClaimDetailScreen() {
     load();
   }, [load]);
 
+  async function handleDelete() {
+    Alert.alert('Remover sinistro', 'Deseja remover este sinistro?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Remover',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await claimService.delete(id);
+            router.back();
+          } catch {
+            Alert.alert('Erro', 'Não foi possível remover o sinistro.');
+          }
+        },
+      },
+    ]);
+  }
+
   if (loading) return <LoadingState />;
   if (error || !claim) return <ErrorState message={error} onRetry={load} />;
 
-  const currentIdx = TIMELINE.indexOf(claim.situation);
+  const situationColor = CLAIM_SITUATION_COLOR[claim.claimSituationId] ?? colors.textMuted;
+  const situationLabel = CLAIM_SITUATION[claim.claimSituationId] ?? 'Desconhecido';
+  const currentTimelineIdx = TIMELINE_IDS.indexOf(claim.claimSituationId);
 
   return (
     <>
       <Stack.Screen options={{ title: 'Detalhe do Sinistro', headerShown: true }} />
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.farmName}>{claim.farmName}</Text>
-            <Text style={styles.plotName}>{claim.plotName}</Text>
+          <View style={styles.headerInfo}>
+            <Text style={styles.claimNumber}>{claim.claimNumber}</Text>
+            <Text style={styles.claimDate}>Aberto em {formatDate(claim.createdAt)}</Text>
           </View>
-          <View
-            style={[
-              styles.badge,
-              { backgroundColor: situationColor[claim.situation] + '20' },
-            ]}
-          >
-            <Text style={[styles.badgeText, { color: situationColor[claim.situation] }]}>
-              {situationLabel[claim.situation]}
-            </Text>
+          <View style={[styles.badge, { backgroundColor: situationColor + '20' }]}>
+            <Text style={[styles.badgeText, { color: situationColor }]}>{situationLabel}</Text>
           </View>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Linha do Tempo</Text>
           <View style={styles.timeline}>
-            {TIMELINE.map((step, idx) => (
-              <View key={step} style={styles.timelineStep}>
-                <View
-                  style={[
-                    styles.timelineDot,
-                    idx <= currentIdx && styles.timelineDotActive,
-                    claim.situation === 'REJECTED' && idx === currentIdx && styles.timelineDotRejected,
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.timelineLabel,
-                    idx <= currentIdx && styles.timelineLabelActive,
-                  ]}
-                >
-                  {situationLabel[step]}
-                </Text>
-                {idx < TIMELINE.length - 1 && (
+            {TIMELINE_IDS.map((stepId, idx) => {
+              const isActive = currentTimelineIdx >= idx;
+              const isRejected = claim.claimSituationId === 4 && idx === currentTimelineIdx;
+              return (
+                <View key={stepId} style={styles.timelineStep}>
                   <View
-                    style={[styles.timelineLine, idx < currentIdx && styles.timelineLineActive]}
+                    style={[
+                      styles.timelineDot,
+                      isActive && styles.timelineDotActive,
+                      isRejected && styles.timelineDotRejected,
+                    ]}
                   />
-                )}
-              </View>
-            ))}
+                  <Text style={[styles.timelineLabel, isActive && styles.timelineLabelActive]}>
+                    {CLAIM_SITUATION[stepId]}
+                  </Text>
+                  {idx < TIMELINE_IDS.length - 1 && (
+                    <View
+                      style={[
+                        styles.timelineLine,
+                        currentTimelineIdx > idx && styles.timelineLineActive,
+                      ]}
+                    />
+                  )}
+                </View>
+              );
+            })}
           </View>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Detalhes do Evento</Text>
-          <InfoRow label="Categoria" value={claim.category} />
-          <InfoRow label="Subcategoria" value={claim.subcategory} />
-          <InfoRow label="Descrição" value={claim.description} />
-          <InfoRow label="Data" value={formatDate(claim.createdAt)} />
+          <InfoRow label="Categoria" value={CLAIM_CATEGORY[claim.categoryId] ?? `${claim.categoryId}`} />
+          <InfoRow label="Subcategoria" value={CLAIM_SUBCATEGORY[claim.subCategoryId] ?? `${claim.subCategoryId}`} />
+          {claim.description ? <InfoRow label="Descrição" value={claim.description} /> : null}
+          {claim.totalAffectedAreaHa != null ? (
+            <InfoRow label="Área afetada" value={`${claim.totalAffectedAreaHa} ha`} />
+          ) : null}
         </View>
 
         {(claim.ndviBefore != null || claim.ndviAfter != null) && (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Análise Satelital NDVI</Text>
-            {claim.ndviBefore != null && (
-              <NdviBar label="Antes" value={claim.ndviBefore} />
-            )}
-            {claim.ndviAfter != null && (
-              <NdviBar label="Depois" value={claim.ndviAfter} />
-            )}
-            {claim.lossPercentage != null && (
+            {claim.ndviBefore != null && <NdviBar label="Antes" value={claim.ndviBefore} />}
+            {claim.ndviAfter != null && <NdviBar label="Depois" value={claim.ndviAfter} />}
+            {claim.totalLossPct != null && (
               <View style={styles.lossRow}>
                 <Text style={styles.lossLabel}>Perda estimada</Text>
-                <Text style={styles.lossValue}>{claim.lossPercentage.toFixed(1)}%</Text>
+                <Text style={styles.lossValue}>{(claim.totalLossPct * 100).toFixed(1)}%</Text>
               </View>
+            )}
+            {claim.mlConfidenceScore != null && (
+              <Text style={styles.confidence}>
+                Confiança IA: {(claim.mlConfidenceScore * 100).toFixed(0)}%
+                {claim.fraudFlag ? ' ⚠️ Alerta de fraude' : ''}
+              </Text>
             )}
           </View>
         )}
@@ -160,13 +170,27 @@ export default function ClaimDetailScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Indenização</Text>
           <InfoRow
+            label="Valor calculado"
+            value={claim.calculatedAmount != null ? formatCurrency(claim.calculatedAmount) : '—'}
+          />
+          <InfoRow
             label="Valor aprovado"
             value={claim.approvedAmount != null ? formatCurrency(claim.approvedAmount) : '—'}
           />
-          {claim.situation === 'PENDING' || claim.situation === 'UNDER_ANALYSIS' ? (
+          {(claim.claimSituationId === 1 || claim.claimSituationId === 2) && (
             <Text style={styles.waitingText}>Aguardando análise satelital</Text>
-          ) : null}
+          )}
         </View>
+
+        {claim.claimSituationId === 1 && (
+          <TouchableOpacity
+            style={styles.deleteBtn}
+            onPress={handleDelete}
+            accessibilityLabel="Remover sinistro"
+          >
+            <Text style={styles.deleteBtnText}>Remover sinistro</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </>
   );
@@ -196,8 +220,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  farmName: { ...typography.label, fontSize: 16, color: colors.text },
-  plotName: { ...typography.caption, marginTop: 2 },
+  headerInfo: { gap: spacing.xs },
+  claimNumber: { ...typography.label, fontSize: 16, color: colors.text },
+  claimDate: { ...typography.caption },
   badge: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
   badgeText: { fontSize: 13, fontWeight: '600' },
   card: {
@@ -263,5 +288,14 @@ const styles = StyleSheet.create({
   },
   lossLabel: { ...typography.label, color: colors.text },
   lossValue: { fontSize: 20, fontWeight: '700', color: colors.danger },
+  confidence: { ...typography.caption, textAlign: 'center', marginTop: spacing.xs },
   waitingText: { ...typography.caption, color: colors.textMuted, textAlign: 'center', fontStyle: 'italic' },
+  deleteBtn: {
+    borderRadius: radius.md,
+    padding: spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.danger,
+  },
+  deleteBtnText: { color: colors.danger, fontWeight: '600', fontSize: 16 },
 });

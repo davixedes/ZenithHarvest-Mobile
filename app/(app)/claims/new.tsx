@@ -20,47 +20,52 @@ import { router, Stack } from 'expo-router';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { colors, radius, spacing, typography } from '@/constants/theme';
-import { claimService } from '@/services/claimService';
-import { farmService, Farm, Plot } from '@/services/farmService';
+import {
+  CLAIM_CATEGORY,
+  CLAIM_SUBCATEGORY,
+  claimService,
+} from '@/services/claimService';
+import { Policy, policyService } from '@/services/policyService';
 
-const CATEGORIES = [
-  { label: 'Seca', value: 'DROUGHT' },
-  { label: 'Excesso de chuva', value: 'FLOOD' },
-  { label: 'Granizo', value: 'HAIL' },
-  { label: 'Geada', value: 'FROST' },
-  { label: 'Vento forte', value: 'WIND' },
-  { label: 'Praga', value: 'PEST' },
-  { label: 'Outro', value: 'OTHER' },
-];
+const CATEGORY_ENTRIES = Object.entries(CLAIM_CATEGORY).map(([k, v]) => ({
+  id: Number(k),
+  label: v,
+}));
+
+const SUBCATEGORY_ENTRIES = Object.entries(CLAIM_SUBCATEGORY).map(([k, v]) => ({
+  id: Number(k),
+  label: v,
+}));
 
 export default function NewClaimScreen() {
-  const [farms, setFarms] = useState<Farm[]>([]);
-  const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
-  const [selectedPlot, setSelectedPlot] = useState<Plot | null>(null);
-  const [category, setCategory] = useState('');
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [selectedPolicyId, setSelectedPolicyId] = useState<string | null>(null);
+  const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [subCategoryId, setSubCategoryId] = useState<number | null>(null);
+  const [claimNumber, setClaimNumber] = useState('');
   const [description, setDescription] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [loadingFarms, setLoadingFarms] = useState(true);
-  const [errorFarms, setErrorFarms] = useState('');
+  const [loadingPolicies, setLoadingPolicies] = useState(true);
+  const [errorPolicies, setErrorPolicies] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const loadFarms = useCallback(async () => {
+  const loadPolicies = useCallback(async () => {
     try {
-      const data = await farmService.list();
-      setFarms(data);
+      const data = await policyService.list();
+      setPolicies(data);
     } catch {
-      setErrorFarms('Não foi possível carregar as fazendas.');
+      setErrorPolicies('Não foi possível carregar as apólices. Verifique se há apólices ativas.');
     } finally {
-      setLoadingFarms(false);
+      setLoadingPolicies(false);
     }
   }, []);
 
   useEffect(() => {
-    loadFarms();
+    loadPolicies();
     getLocation();
-  }, [loadFarms]);
+  }, [loadPolicies]);
 
   async function getLocation() {
     try {
@@ -81,37 +86,42 @@ export default function NewClaimScreen() {
       mediaTypes: ['images'],
       allowsEditing: true,
       quality: 0.7,
-      base64: true,
     });
     if (!result.canceled && result.assets[0]) {
       setPhotoUri(result.assets[0].uri);
-      setPhotoBase64(result.assets[0].base64 ?? null);
+      setPhotoUrl(result.assets[0].uri);
     }
   }
 
   async function handleSubmit() {
-    if (!selectedPlot) {
-      Alert.alert('Atenção', 'Selecione o talhão afetado.');
+    if (!selectedPolicyId) {
+      Alert.alert('Atenção', 'Selecione a apólice vinculada ao talhão.');
       return;
     }
-    if (!category) {
+    if (!categoryId) {
       Alert.alert('Atenção', 'Selecione a categoria do evento.');
       return;
     }
-    if (!description.trim()) {
-      Alert.alert('Atenção', 'Descreva o evento ocorrido.');
+    if (!subCategoryId) {
+      Alert.alert('Atenção', 'Selecione a subcategoria.');
+      return;
+    }
+    if (!claimNumber.trim()) {
+      Alert.alert('Atenção', 'Informe o número do sinistro.');
       return;
     }
     setSubmitting(true);
     try {
       const claim = await claimService.create({
-        plotId: selectedPlot.id,
-        category,
-        subcategory: category,
-        description: description.trim(),
-        photoBase64: photoBase64 ?? undefined,
-        latitude: coords?.latitude,
-        longitude: coords?.longitude,
+        claimNumber: claimNumber.trim(),
+        policyId: selectedPolicyId,
+        claimSituationId: 1,
+        categoryId,
+        subCategoryId,
+        description: description.trim() || undefined,
+        photoUrl: photoUrl ?? undefined,
+        openingGpsLat: coords?.latitude,
+        openingGpsLng: coords?.longitude,
       });
       Alert.alert('Sinistro aberto', 'Seu sinistro foi registrado com sucesso.', [
         { text: 'Ver detalhes', onPress: () => router.replace(`/(app)/claims/${claim.id}`) },
@@ -124,8 +134,8 @@ export default function NewClaimScreen() {
     }
   }
 
-  if (loadingFarms) return <LoadingState />;
-  if (errorFarms) return <ErrorState message={errorFarms} onRetry={loadFarms} />;
+  if (loadingPolicies) return <LoadingState />;
+  if (errorPolicies) return <ErrorState message={errorPolicies} onRetry={loadPolicies} />;
 
   return (
     <KeyboardAvoidingView
@@ -134,82 +144,93 @@ export default function NewClaimScreen() {
     >
       <Stack.Screen options={{ title: 'Abrir Sinistro', headerShown: true }} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Localização do Dano</Text>
+          <Text style={styles.sectionTitle}>Número do Sinistro</Text>
+          <TextInput
+            style={styles.input}
+            value={claimNumber}
+            onChangeText={setClaimNumber}
+            placeholder="SIN-2024-001"
+            placeholderTextColor={colors.textMuted}
+            autoCapitalize="characters"
+            accessibilityLabel="Número do sinistro"
+          />
+        </View>
 
-          <Text style={styles.label}>Fazenda</Text>
-          <View style={styles.optionGroup}>
-            {farms.map((farm) => (
-              <TouchableOpacity
-                key={farm.id}
-                style={[
-                  styles.option,
-                  selectedFarm?.id === farm.id && styles.optionSelected,
-                ]}
-                onPress={() => {
-                  setSelectedFarm(farm);
-                  setSelectedPlot(null);
-                }}
-                accessibilityLabel={`Fazenda ${farm.name}`}
-              >
-                <Text
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Apólice</Text>
+          {policies.length === 0 ? (
+            <Text style={styles.emptyText}>Nenhuma apólice ativa encontrada.</Text>
+          ) : (
+            <View style={styles.optionGroup}>
+              {policies.map((policy) => (
+                <TouchableOpacity
+                  key={policy.id}
                   style={[
-                    styles.optionText,
-                    selectedFarm?.id === farm.id && styles.optionTextSelected,
+                    styles.option,
+                    selectedPolicyId === policy.id && styles.optionSelected,
                   ]}
+                  onPress={() => setSelectedPolicyId(policy.id)}
+                  accessibilityLabel={`Apólice ${policy.policyNumber}`}
                 >
-                  {farm.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {selectedFarm?.plots && selectedFarm.plots.length > 0 && (
-            <>
-              <Text style={styles.label}>Talhão</Text>
-              <View style={styles.optionGroup}>
-                {selectedFarm.plots.map((plot) => (
-                  <TouchableOpacity
-                    key={plot.id}
+                  <Text
                     style={[
-                      styles.option,
-                      selectedPlot?.id === plot.id && styles.optionSelected,
+                      styles.optionText,
+                      selectedPolicyId === policy.id && styles.optionTextSelected,
                     ]}
-                    onPress={() => setSelectedPlot(plot)}
-                    accessibilityLabel={`Talhão ${plot.name}`}
                   >
-                    <Text
-                      style={[
-                        styles.optionText,
-                        selectedPlot?.id === plot.id && styles.optionTextSelected,
-                      ]}
-                    >
-                      {plot.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </>
+                    {policy.policyNumber}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           )}
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Tipo de Evento</Text>
+          <Text style={styles.sectionTitle}>Categoria do Evento</Text>
           <View style={styles.optionGroup}>
-            {CATEGORIES.map((cat) => (
+            {CATEGORY_ENTRIES.map((cat) => (
               <TouchableOpacity
-                key={cat.value}
-                style={[styles.option, category === cat.value && styles.optionSelected]}
-                onPress={() => setCategory(cat.value)}
+                key={cat.id}
+                style={[styles.option, categoryId === cat.id && styles.optionSelected]}
+                onPress={() => {
+                  setCategoryId(cat.id);
+                  setSubCategoryId(null);
+                }}
                 accessibilityLabel={cat.label}
               >
                 <Text
                   style={[
                     styles.optionText,
-                    category === cat.value && styles.optionTextSelected,
+                    categoryId === cat.id && styles.optionTextSelected,
                   ]}
                 >
                   {cat.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Subcategoria</Text>
+          <View style={styles.optionGroup}>
+            {SUBCATEGORY_ENTRIES.map((sub) => (
+              <TouchableOpacity
+                key={sub.id}
+                style={[styles.option, subCategoryId === sub.id && styles.optionSelected]}
+                onPress={() => setSubCategoryId(sub.id)}
+                accessibilityLabel={sub.label}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    subCategoryId === sub.id && styles.optionTextSelected,
+                  ]}
+                >
+                  {sub.label}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -281,7 +302,17 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   sectionTitle: { ...typography.subheading, color: colors.text },
-  label: { ...typography.label, color: colors.text },
+  emptyText: { ...typography.caption, textAlign: 'center', padding: spacing.sm },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    fontSize: 16,
+    color: colors.text,
+    backgroundColor: colors.background,
+  },
+  textArea: { minHeight: 100, textAlignVertical: 'top' },
   optionGroup: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   option: {
     paddingVertical: spacing.sm,
@@ -294,16 +325,6 @@ const styles = StyleSheet.create({
   optionSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
   optionText: { fontSize: 14, color: colors.text },
   optionTextSelected: { color: colors.textOnPrimary, fontWeight: '600' },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: colors.background,
-  },
-  textArea: { minHeight: 100, textAlignVertical: 'top' },
   photoBtn: {
     borderWidth: 2,
     borderStyle: 'dashed',
