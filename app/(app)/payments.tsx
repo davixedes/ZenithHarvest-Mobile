@@ -77,7 +77,13 @@ export default function PaymentsScreen() {
             </View>
           ) : null
         }
-        ListEmptyComponent={<EmptyState message="Nenhum pagamento registrado." ionicon="card-outline" />}
+        ListEmptyComponent={
+          <EmptyState
+            ionicon="card-outline"
+            title="Nenhum pagamento ainda"
+            message="Os pagamentos aparecem aqui após a aprovação e processamento de sinistros pela seguradora."
+          />
+        }
         renderItem={({ item }) => {
           const color = PAYMENT_SITUATION_COLOR[item.paymentSituationId] ?? colors.textMuted;
           const label = PAYMENT_SITUATION[item.paymentSituationId] ?? '—';

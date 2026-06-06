@@ -97,7 +97,15 @@ export default function FarmsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, farms.length === 0 && styles.listEmpty]}
         refreshControl={<ZenithRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={<EmptyState message="Nenhuma fazenda cadastrada." ionicon="leaf-outline" />}
+        ListEmptyComponent={
+          <EmptyState
+            ionicon="leaf-outline"
+            title="Nenhuma fazenda cadastrada"
+            message="Cadastre sua primeira fazenda para começar o monitoramento satelital da lavoura."
+            actionLabel="Cadastrar fazenda"
+            onAction={() => router.push('/(app)/farms/new')}
+          />
+        }
         renderItem={({ item }) => (
           <View style={styles.row}>
             <TouchableOpacity

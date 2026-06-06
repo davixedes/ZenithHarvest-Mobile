@@ -70,7 +70,13 @@ export default function PoliciesScreen() {
             }}
           />
         }
-        ListEmptyComponent={<EmptyState message="Nenhuma apólice encontrada." ionicon="shield-outline" />}
+        ListEmptyComponent={
+          <EmptyState
+            ionicon="shield-checkmark-outline"
+            title="Nenhuma apólice vinculada"
+            message="Suas apólices de seguro rural aparecem aqui quando vinculadas a um talhão cadastrado."
+          />
+        }
         renderItem={({ item }) => {
           const color = POLICY_SITUATION_COLOR[item.policySituationId] ?? colors.textMuted;
           const label = POLICY_SITUATION[item.policySituationId] ?? '—';

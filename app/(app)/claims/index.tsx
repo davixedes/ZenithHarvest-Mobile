@@ -94,7 +94,15 @@ export default function ClaimsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, claims.length === 0 && styles.listEmpty]}
         refreshControl={<ZenithRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={<EmptyState message="Nenhum sinistro registrado." ionicon="document-text-outline" />}
+        ListEmptyComponent={
+          <EmptyState
+            ionicon="document-text-outline"
+            title="Nenhum sinistro registrado"
+            message="Abra um sinistro quando ocorrer perda na lavoura por geada, seca, granizo ou outra causa coberta."
+            actionLabel="Abrir sinistro"
+            onAction={() => router.push('/(app)/claims/new')}
+          />
+        }
         renderItem={({ item }) => {
           const color = CLAIM_SITUATION_COLOR[item.claimSituationId] ?? colors.textMuted;
           const label = CLAIM_SITUATION[item.claimSituationId] ?? 'Desconhecido';
