@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -7,7 +7,8 @@ import { Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { Payment, paymentService, PAYMENT_SITUATION, PAYMENT_SITUATION_COLOR } from '@/services/paymentService';
 
 function formatCurrency(value: number) {
@@ -19,6 +20,8 @@ function formatDate(iso: string) {
 }
 
 export default function PaymentsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -95,37 +98,39 @@ export default function PaymentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  list: { padding: spacing.md, gap: spacing.sm },
-  listEmpty: { flex: 1 },
-  summaryCard: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-    gap: spacing.xs,
-    ...shadow.md,
-  },
-  summaryLabel: { ...typography.label, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: 0.5 },
-  summaryValue: { fontSize: 32, fontWeight: '800', color: colors.textOnPrimary, letterSpacing: -1 },
-  summaryRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
-  summaryNote: { ...typography.caption, color: 'rgba(255,255,255,0.75)' },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-    ...shadow.sm,
-  },
-  statusDot: { width: 8, height: 8, borderRadius: 4, alignSelf: 'flex-start', marginTop: 6 },
-  cardBody: { flex: 1, gap: 4 },
-  cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  amount: { fontSize: 18, fontWeight: '700', color: colors.text },
-  date: { ...typography.caption, color: colors.textMuted },
-  pixRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  pixKey: { ...typography.caption, color: colors.textLight },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
-  badgeText: { ...typography.micro },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    list: { padding: spacing.md, gap: spacing.sm },
+    listEmpty: { flex: 1 },
+    summaryCard: {
+      backgroundColor: c.primary,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      marginBottom: spacing.md,
+      gap: spacing.xs,
+      ...shadow.md,
+    },
+    summaryLabel: { ...typography.label, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: 0.5 },
+    summaryValue: { fontSize: 32, fontWeight: '800', color: c.textOnPrimary, letterSpacing: -1 },
+    summaryRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
+    summaryNote: { ...typography.caption, color: 'rgba(255,255,255,0.75)' },
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+      ...shadow.sm,
+    },
+    statusDot: { width: 8, height: 8, borderRadius: 4, alignSelf: 'flex-start', marginTop: 6 },
+    cardBody: { flex: 1, gap: 4 },
+    cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    amount: { fontSize: 18, fontWeight: '700', color: c.text },
+    date: { ...typography.caption, color: c.textMuted },
+    pixRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    pixKey: { ...typography.caption, color: c.textLight },
+    badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
+    badgeText: { ...typography.micro },
+  });
+}

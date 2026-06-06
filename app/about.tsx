@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import Constants from 'expo-constants';
 import { Stack } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 const COMMIT_HASH = process.env.EXPO_PUBLIC_COMMIT_HASH ?? 'dev';
 
 export default function AboutScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   return (
@@ -66,6 +69,8 @@ export default function AboutScreen() {
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
@@ -74,43 +79,45 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl, alignItems: 'stretch' },
-  logoArea: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
-  iconMark: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadow.md,
-  },
-  appName: { ...typography.display, color: colors.text },
-  tagline: { ...typography.body, color: colors.textMuted, textAlign: 'center' },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-    ...shadow.sm,
-  },
-  sectionTitle: { ...typography.title, color: colors.text },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  infoLabel: { ...typography.caption, color: colors.textMuted },
-  infoValue: { ...typography.body, color: colors.text, fontSize: 14 },
-  body: { ...typography.body, color: colors.textSecondary, lineHeight: 22 },
-  footer: {
-    textAlign: 'center',
-    ...typography.caption,
-    color: colors.textLight,
-    marginTop: spacing.md,
-  },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl, alignItems: 'stretch' },
+    logoArea: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
+    iconMark: {
+      width: 80,
+      height: 80,
+      borderRadius: 24,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...shadow.md,
+    },
+    appName: { ...typography.display, color: c.text },
+    tagline: { ...typography.body, color: c.textMuted, textAlign: 'center' },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+      ...shadow.sm,
+    },
+    sectionTitle: { ...typography.title, color: c.text },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: c.borderLight,
+    },
+    infoLabel: { ...typography.caption, color: c.textMuted },
+    infoValue: { ...typography.body, color: c.text, fontSize: 14 },
+    body: { ...typography.body, color: c.textSecondary, lineHeight: 22 },
+    footer: {
+      textAlign: 'center',
+      ...typography.caption,
+      color: c.textLight,
+      marginTop: spacing.md,
+    },
+  });
+}

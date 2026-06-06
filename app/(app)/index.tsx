@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   RefreshControl,
   ScrollView,
@@ -14,13 +14,16 @@ import { router } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { Claim, CLAIM_CATEGORY, CLAIM_SITUATION, CLAIM_SITUATION_COLOR, claimService } from '@/services/claimService';
 import { Farm, farmService } from '@/services/farmService';
 import { useAuthContext } from '@/store/authContext';
 
 export default function DashboardScreen() {
   const { user } = useAuthContext();
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [farms, setFarms] = useState<Farm[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,6 +144,8 @@ export default function DashboardScreen() {
 }
 
 function StatCard({ label, value, icon, color }: { label: string; value: number; icon: React.ComponentProps<typeof Ionicons>['name']; color: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={[styles.statCard, { borderTopColor: color }]}>
       <Ionicons name={icon} size={20} color={color} />
@@ -161,6 +166,8 @@ function Section({
   onAdd?: () => void;
   children: React.ReactNode;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
@@ -183,85 +190,87 @@ function Section({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: { gap: spacing.lg, paddingBottom: spacing.xxl },
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    content: { gap: spacing.lg, paddingBottom: spacing.xxl },
 
-  hero: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
-  greeting: { ...typography.heading, color: colors.textOnPrimary },
-  heroSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14, marginTop: 2 },
-  newClaimFab: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    hero: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: c.primary,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.lg,
+      paddingBottom: spacing.xl,
+    },
+    greeting: { ...typography.heading, color: c.textOnPrimary },
+    heroSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14, marginTop: 2 },
+    newClaimFab: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(255,255,255,0.25)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    marginTop: -spacing.md,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-    gap: spacing.xs,
-    borderTopWidth: 3,
-    ...shadow.sm,
-  },
-  statValue: { ...typography.heading, color: colors.text, fontSize: 24 },
-  statLabel: { ...typography.micro, color: colors.textMuted, textTransform: 'uppercase' },
+    statsRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      marginTop: -spacing.md,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      alignItems: 'center',
+      gap: spacing.xs,
+      borderTopWidth: 3,
+      ...shadow.sm,
+    },
+    statValue: { ...typography.heading, color: c.text, fontSize: 24 },
+    statLabel: { ...typography.micro, color: c.textMuted, textTransform: 'uppercase' },
 
-  section: { paddingHorizontal: spacing.md, gap: spacing.sm },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { ...typography.title, color: colors.text },
-  sectionActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  seeAll: { ...typography.label, color: colors.primary },
-  addBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sectionContent: { gap: spacing.sm },
+    section: { paddingHorizontal: spacing.md, gap: spacing.sm },
+    sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    sectionTitle: { ...typography.title, color: c.text },
+    sectionActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    seeAll: { ...typography.label, color: c.primary },
+    addBtn: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: c.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sectionContent: { gap: spacing.sm },
 
-  listCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-    ...shadow.sm,
-  },
-  listCardIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  listCardBody: { flex: 1, gap: 2 },
-  listCardTitle: { ...typography.bodyBold, color: colors.text },
-  listCardSub: { ...typography.caption, color: colors.textMuted },
-  statusBar: { width: 4, height: '100%', borderRadius: 2, alignSelf: 'stretch' },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
-  badgeText: { ...typography.micro },
-});
+    listCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+      ...shadow.sm,
+    },
+    listCardIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: c.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    listCardBody: { flex: 1, gap: 2 },
+    listCardTitle: { ...typography.bodyBold, color: c.text },
+    listCardSub: { ...typography.caption, color: c.textMuted },
+    statusBar: { width: 4, height: '100%', borderRadius: 2, alignSelf: 'stretch' },
+    badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
+    badgeText: { ...typography.micro },
+  });
+}

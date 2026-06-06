@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -6,7 +6,8 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import {
   Claim,
   CLAIM_CATEGORY,
@@ -33,6 +34,8 @@ function formatDate(iso: string) {
 }
 
 function NdviBar({ label, value }: { label: string; value: number }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const pct = Math.min(Math.max(value, 0), 1);
   return (
     <View style={styles.ndviRow}>
@@ -47,6 +50,8 @@ function NdviBar({ label, value }: { label: string; value: number }) {
 
 export default function ClaimDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [claim, setClaim] = useState<Claim | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -199,6 +204,8 @@ export default function ClaimDetailScreen() {
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
@@ -207,95 +214,97 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    ...shadow.sm,
-  },
-  headerInfo: { gap: spacing.xs },
-  claimNumber: { ...typography.title, color: colors.text },
-  claimDate: { ...typography.caption, color: colors.textMuted },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
-  badgeText: { ...typography.micro },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-    ...shadow.sm,
-  },
-  sectionTitle: { ...typography.title, color: colors.text },
-  timeline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  timelineStep: { alignItems: 'center', flex: 1, position: 'relative' },
-  timelineDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: colors.border,
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  timelineDotActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  timelineDotRejected: { backgroundColor: colors.danger, borderColor: colors.danger },
-  timelineLabel: { fontSize: 10, color: colors.textMuted, textAlign: 'center', marginTop: 4 },
-  timelineLabelActive: { color: colors.primary, fontWeight: '600' },
-  timelineLine: {
-    position: 'absolute',
-    top: 7,
-    left: '50%',
-    right: '-50%',
-    height: 2,
-    backgroundColor: colors.border,
-    zIndex: -1,
-  },
-  timelineLineActive: { backgroundColor: colors.primary },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  infoLabel: { ...typography.caption, color: colors.textMuted },
-  infoValue: { ...typography.body, color: colors.text, fontSize: 14, flexShrink: 1, textAlign: 'right' },
-  ndviRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  ndviLabel: { width: 50, ...typography.caption },
-  ndviTrack: {
-    flex: 1,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.border,
-    overflow: 'hidden',
-  },
-  ndviFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 5 },
-  ndviValue: { width: 40, ...typography.caption, textAlign: 'right' },
-  lossRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: spacing.xs,
-  },
-  lossLabel: { ...typography.label, color: colors.text },
-  lossValue: { fontSize: 20, fontWeight: '700', color: colors.danger },
-  confidence: { ...typography.caption, textAlign: 'center', marginTop: spacing.xs },
-  waitingText: { ...typography.caption, color: colors.textMuted, textAlign: 'center', fontStyle: 'italic' },
-  deleteBtn: {
-    flexDirection: 'row',
-    borderRadius: radius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    borderWidth: 1.5,
-    borderColor: colors.danger,
-    backgroundColor: colors.dangerBg,
-  },
-  deleteBtnText: { color: colors.danger, fontWeight: '700', fontSize: 15 },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      ...shadow.sm,
+    },
+    headerInfo: { gap: spacing.xs },
+    claimNumber: { ...typography.title, color: c.text },
+    claimDate: { ...typography.caption, color: c.textMuted },
+    badge: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
+    badgeText: { ...typography.micro },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+      ...shadow.sm,
+    },
+    sectionTitle: { ...typography.title, color: c.text },
+    timeline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    timelineStep: { alignItems: 'center', flex: 1, position: 'relative' },
+    timelineDot: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      backgroundColor: c.border,
+      borderWidth: 2,
+      borderColor: c.border,
+    },
+    timelineDotActive: { backgroundColor: c.primary, borderColor: c.primary },
+    timelineDotRejected: { backgroundColor: c.danger, borderColor: c.danger },
+    timelineLabel: { fontSize: 10, color: c.textMuted, textAlign: 'center', marginTop: 4 },
+    timelineLabelActive: { color: c.primary, fontWeight: '600' },
+    timelineLine: {
+      position: 'absolute',
+      top: 7,
+      left: '50%',
+      right: '-50%',
+      height: 2,
+      backgroundColor: c.border,
+      zIndex: -1,
+    },
+    timelineLineActive: { backgroundColor: c.primary },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: c.borderLight,
+    },
+    infoLabel: { ...typography.caption, color: c.textMuted },
+    infoValue: { ...typography.body, color: c.text, fontSize: 14, flexShrink: 1, textAlign: 'right' },
+    ndviRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    ndviLabel: { width: 50, ...typography.caption },
+    ndviTrack: {
+      flex: 1,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: c.border,
+      overflow: 'hidden',
+    },
+    ndviFill: { height: '100%', backgroundColor: c.primary, borderRadius: 5 },
+    ndviValue: { width: 40, ...typography.caption, textAlign: 'right' },
+    lossRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: spacing.xs,
+    },
+    lossLabel: { ...typography.label, color: c.text },
+    lossValue: { fontSize: 20, fontWeight: '700', color: c.danger },
+    confidence: { ...typography.caption, textAlign: 'center', marginTop: spacing.xs },
+    waitingText: { ...typography.caption, color: c.textMuted, textAlign: 'center', fontStyle: 'italic' },
+    deleteBtn: {
+      flexDirection: 'row',
+      borderRadius: radius.md,
+      padding: spacing.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.xs,
+      borderWidth: 1.5,
+      borderColor: c.danger,
+      backgroundColor: c.dangerBg,
+    },
+    deleteBtnText: { color: c.danger, fontWeight: '700', fontSize: 15 },
+  });
+}

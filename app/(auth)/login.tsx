@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -16,11 +16,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import axios from 'axios';
 
-import { colors, gradients, radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors, useGradient } from '@/hooks/useColors';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useAuthContext } from '@/store/authContext';
 
 export default function LoginScreen() {
   const { login } = useAuthContext();
+  const colors = useColors();
+  const gradient = useGradient();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -124,17 +128,10 @@ export default function LoginScreen() {
             accessibilityLabel="Entrar"
             style={loading ? styles.buttonDisabledWrap : undefined}
           >
-            <LinearGradient
-              colors={gradients.primary}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.button}
-            >
-              {loading ? (
-                <ActivityIndicator color={colors.textOnGradient} />
-              ) : (
-                <Text style={styles.buttonText}>Entrar</Text>
-              )}
+            <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.button}>
+              {loading
+                ? <ActivityIndicator color={colors.textOnGradient} />
+                : <Text style={styles.buttonText}>Entrar</Text>}
             </LinearGradient>
           </TouchableOpacity>
 
@@ -152,74 +149,41 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.primary },
-  container: {
-    flexGrow: 1,
-    padding: spacing.lg,
-    justifyContent: 'center',
-    gap: spacing.xl,
-  },
-  header: { alignItems: 'center', gap: spacing.sm },
-  brandMark: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brandName: { fontSize: 26, fontWeight: '800', color: colors.textOnPrimary, letterSpacing: -0.5 },
-  brandSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14 },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.md,
-    ...shadow.md,
-  },
-  cardTitle: { ...typography.title, color: colors.text, marginBottom: spacing.xs },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.dangerBg,
-    padding: spacing.sm,
-    borderRadius: radius.sm,
-  },
-  errorText: { color: colors.danger, fontSize: 13, flex: 1 },
-  field: { gap: spacing.xs },
-  label: { ...typography.label, color: colors.textSecondary },
-  inputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.background,
-  },
-  inputIcon: { paddingLeft: spacing.sm },
-  input: {
-    flex: 1,
-    padding: spacing.md,
-    fontSize: 15,
-    color: colors.text,
-  },
-  inputWithToggle: { paddingRight: 0 },
-  eyeBtn: { padding: spacing.sm },
-  buttonDisabledWrap: { opacity: 0.6 },
-  button: {
-    borderRadius: radius.xl,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    marginTop: spacing.xs,
-  },
-  buttonText: { color: colors.textOnGradient, fontWeight: '700', fontSize: 16 },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  footerText: { color: colors.textMuted, fontSize: 14 },
-  link: { color: colors.primary, fontWeight: '700', fontSize: 14 },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.primary },
+    container: { flexGrow: 1, padding: spacing.lg, justifyContent: 'center', gap: spacing.xl },
+    header: { alignItems: 'center', gap: spacing.sm },
+    brandMark: {
+      width: 64, height: 64, borderRadius: 32,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    brandName: { fontSize: 26, fontWeight: '800', color: c.textOnPrimary, letterSpacing: -0.5 },
+    brandSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14 },
+    card: { backgroundColor: c.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, ...shadow.md },
+    cardTitle: { ...typography.title, color: c.text, marginBottom: spacing.xs },
+    errorBox: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
+      backgroundColor: c.dangerBg, padding: spacing.sm, borderRadius: radius.sm,
+    },
+    errorText: { color: c.danger, fontSize: 13, flex: 1 },
+    field: { gap: spacing.xs },
+    label: { ...typography.label, color: c.textSecondary },
+    inputWrap: {
+      flexDirection: 'row', alignItems: 'center',
+      borderWidth: 1.5, borderColor: c.border,
+      borderRadius: radius.md, backgroundColor: c.background,
+    },
+    inputIcon: { paddingLeft: spacing.sm },
+    input: { flex: 1, padding: spacing.md, fontSize: 15, color: c.text },
+    inputWithToggle: { paddingRight: 0 },
+    eyeBtn: { padding: spacing.sm },
+    buttonDisabledWrap: { opacity: 0.6 },
+    button: { borderRadius: radius.xl, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.xs },
+    buttonText: { color: c.textOnGradient, fontWeight: '700', fontSize: 16 },
+    footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    footerText: { color: c.textMuted, fontSize: 14 },
+    link: { color: c.primary, fontWeight: '700', fontSize: 14 },
+  });
+}

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -7,10 +7,13 @@ import { router, Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { Claim, CLAIM_CATEGORY, CLAIM_SITUATION, CLAIM_SITUATION_COLOR, claimService } from '@/services/claimService';
 
 export default function ClaimsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -88,24 +91,26 @@ export default function ClaimsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  list: { padding: spacing.md, gap: spacing.sm },
-  listEmpty: { flex: 1 },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
-    gap: spacing.sm,
-    ...shadow.sm,
-  },
-  statusAccent: { width: 4, alignSelf: 'stretch' },
-  cardBody: { flex: 1, paddingVertical: spacing.md, gap: 4 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardTitle: { ...typography.bodyBold, color: colors.text },
-  cardSub: { ...typography.caption, color: colors.textMuted },
-  cardDate: { ...typography.micro, color: colors.textLight, marginTop: 2 },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
-  badgeText: { ...typography.micro },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    list: { padding: spacing.md, gap: spacing.sm },
+    listEmpty: { flex: 1 },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      overflow: 'hidden',
+      gap: spacing.sm,
+      ...shadow.sm,
+    },
+    statusAccent: { width: 4, alignSelf: 'stretch' },
+    cardBody: { flex: 1, paddingVertical: spacing.md, gap: 4 },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    cardTitle: { ...typography.bodyBold, color: c.text },
+    cardSub: { ...typography.caption, color: c.textMuted },
+    cardDate: { ...typography.micro, color: c.textLight, marginTop: 2 },
+    badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
+    badgeText: { ...typography.micro },
+  });
+}

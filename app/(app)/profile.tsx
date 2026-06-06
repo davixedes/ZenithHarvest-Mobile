@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,11 +12,14 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack } from 'expo-router';
 
-import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { useAuthContext } from '@/store/authContext';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthContext();
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [loggingOut, setLoggingOut] = useState(false);
 
   function confirmLogout() {
@@ -84,6 +87,8 @@ export default function ProfileScreen() {
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
@@ -92,67 +97,69 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: {
-    padding: spacing.lg,
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingBottom: spacing.xxl,
-  },
-  avatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xs,
-    ...shadow.md,
-  },
-  avatarText: { fontSize: 38, color: colors.textOnPrimary, fontWeight: '800' },
-  name: { ...typography.heading, color: colors.text },
-  email: { ...typography.body, color: colors.textMuted },
-  card: {
-    width: '100%',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-    ...shadow.sm,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  infoLabel: { ...typography.caption, color: colors.textMuted },
-  infoValue: { ...typography.body, color: colors.text, fontSize: 14 },
-  aboutBtn: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    ...shadow.sm,
-  },
-  aboutBtnText: { color: colors.textSecondary, fontWeight: '600', fontSize: 15, flex: 1 },
-  logoutBtn: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.dangerBg,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    borderWidth: 1.5,
-    borderColor: colors.danger + '30',
-  },
-  logoutBtnDisabled: { opacity: 0.6 },
-  logoutBtnText: { color: colors.danger, fontWeight: '700', fontSize: 15 },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    content: {
+      padding: spacing.lg,
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingBottom: spacing.xxl,
+    },
+    avatar: {
+      width: 88,
+      height: 88,
+      borderRadius: 44,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.xs,
+      ...shadow.md,
+    },
+    avatarText: { fontSize: 38, color: c.textOnPrimary, fontWeight: '800' },
+    name: { ...typography.heading, color: c.text },
+    email: { ...typography.body, color: c.textMuted },
+    card: {
+      width: '100%',
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+      ...shadow.sm,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: c.borderLight,
+    },
+    infoLabel: { ...typography.caption, color: c.textMuted },
+    infoValue: { ...typography.body, color: c.text, fontSize: 14 },
+    aboutBtn: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      ...shadow.sm,
+    },
+    aboutBtnText: { color: c.textSecondary, fontWeight: '600', fontSize: 15, flex: 1 },
+    logoutBtn: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: c.dangerBg,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      borderWidth: 1.5,
+      borderColor: c.danger + '30',
+    },
+    logoutBtnDisabled: { opacity: 0.6 },
+    logoutBtnText: { color: c.danger, fontWeight: '700', fontSize: 15 },
+  });
+}

@@ -2,7 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Redirect, Tabs } from 'expo-router';
 
 import { LoadingState } from '@/components/LoadingState';
-import { colors, shadow } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
+import { shadow } from '@/constants/theme';
 import { useAuthContext } from '@/store/authContext';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -14,6 +15,7 @@ function TabIcon({
   name: { active: IoniconsName; inactive: IoniconsName };
   focused: boolean;
 }) {
+  const colors = useColors();
   return (
     <Ionicons
       name={focused ? name.active : name.inactive}
@@ -25,6 +27,7 @@ function TabIcon({
 
 export default function AppLayout() {
   const { isAuthenticated, isLoading } = useAuthContext();
+  const colors = useColors();
 
   if (isLoading) return <LoadingState />;
   if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
@@ -49,7 +52,6 @@ export default function AppLayout() {
         headerShadowVisible: false,
       }}
     >
-      {/* ── Tabs visíveis ─────────────────────────────────────── */}
       <Tabs.Screen
         name="index"
         options={{
@@ -104,7 +106,6 @@ export default function AppLayout() {
           ),
         }}
       />
-
     </Tabs>
   );
 }

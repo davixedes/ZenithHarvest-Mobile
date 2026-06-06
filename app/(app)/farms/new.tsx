@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -17,12 +17,15 @@ import { router, Stack } from 'expo-router';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { farmService } from '@/services/farmService';
 import { useAuthContext } from '@/store/authContext';
 
 export default function NewFarmScreen() {
   const { user } = useAuthContext();
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [name, setName] = useState('');
   const [carRegistration, setCarRegistration] = useState('');
@@ -173,6 +176,8 @@ function Field({
   keyboardType?: 'default' | 'numeric';
   maxLength?: number;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
@@ -190,48 +195,50 @@ function Field({
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.background },
-  flex1: { flex: 1 },
-  content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.md,
-    ...shadow.sm,
-  },
-  sectionTitle: { ...typography.title, color: colors.text },
-  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  row: { flexDirection: 'row', gap: spacing.sm },
-  locBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    backgroundColor: colors.primaryLight,
-    borderRadius: radius.full,
-  },
-  locBtnText: { color: colors.primary, fontWeight: '600', fontSize: 13 },
-  field: { gap: spacing.xs },
-  label: { ...typography.label, color: colors.textSecondary },
-  input: {
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.background,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-    ...shadow.sm,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.textOnPrimary, fontWeight: '700', fontSize: 16 },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    flex1: { flex: 1 },
+    content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.md,
+      ...shadow.sm,
+    },
+    sectionTitle: { ...typography.title, color: c.text },
+    rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    row: { flexDirection: 'row', gap: spacing.sm },
+    locBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.sm,
+      backgroundColor: c.primaryLight,
+      borderRadius: radius.full,
+    },
+    locBtnText: { color: c.primary, fontWeight: '600', fontSize: 13 },
+    field: { gap: spacing.xs },
+    label: { ...typography.label, color: c.textSecondary },
+    input: {
+      borderWidth: 1.5,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      fontSize: 15,
+      color: c.text,
+      backgroundColor: c.background,
+    },
+    button: {
+      backgroundColor: c.primary,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      alignItems: 'center',
+      ...shadow.sm,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: { color: c.textOnPrimary, fontWeight: '700', fontSize: 16 },
+  });
+}

@@ -3,7 +3,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
+import { radius, spacing, typography } from '@/constants/theme';
 
 interface Props {
   message?: string;
@@ -11,21 +12,22 @@ interface Props {
 }
 
 export function ErrorState({ message = 'Algo deu errado.', onRetry }: Props) {
+  const colors = useColors();
   return (
-    <View style={styles.container}>
-      <View style={styles.iconWrap}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.iconWrap, { backgroundColor: colors.dangerBg }]}>
         <Ionicons name="alert-circle" size={32} color={colors.danger} />
       </View>
-      <Text style={styles.title}>Ops!</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Ops!</Text>
+      <Text style={[styles.message, { color: colors.textMuted }]}>{message}</Text>
       {onRetry && (
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, { backgroundColor: colors.primary }]}
           onPress={onRetry}
           accessibilityLabel="Tentar novamente"
         >
           <Ionicons name="refresh" size={16} color={colors.textOnPrimary} />
-          <Text style={styles.buttonText}>Tentar novamente</Text>
+          <Text style={[styles.buttonText, { color: colors.textOnPrimary }]}>Tentar novamente</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -33,34 +35,18 @@ export function ErrorState({ message = 'Algo deu errado.', onRetry }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xl,
-    backgroundColor: colors.background,
-    gap: spacing.sm,
-  },
-  iconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.dangerBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xs,
-  },
-  title: { ...typography.title, color: colors.text },
-  message: { ...typography.body, color: colors.textMuted, textAlign: 'center' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.sm },
+  iconWrap: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
+  title: { ...typography.title },
+  message: { ...typography.body, textAlign: 'center' },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.primary,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     borderRadius: radius.full,
     marginTop: spacing.sm,
   },
-  buttonText: { color: colors.textOnPrimary, fontWeight: '600', fontSize: 14 },
+  buttonText: { fontWeight: '600', fontSize: 14 },
 });

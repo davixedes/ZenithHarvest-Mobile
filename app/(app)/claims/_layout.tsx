@@ -1,8 +1,9 @@
 import { Stack } from 'expo-router';
 
-import { colors } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 export default function ClaimsLayout() {
+  const colors = useColors();
   return (
     <Stack
       screenOptions={{

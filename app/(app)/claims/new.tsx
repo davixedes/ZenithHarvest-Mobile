@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -21,7 +21,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import {
   CLAIM_CATEGORY,
   CLAIM_SUBCATEGORY,
@@ -40,6 +41,8 @@ const SUBCATEGORY_ENTRIES = Object.entries(CLAIM_SUBCATEGORY).map(([k, v]) => ({
 }));
 
 export default function NewClaimScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [selectedPolicyId, setSelectedPolicyId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
@@ -296,63 +299,65 @@ export default function NewClaimScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-    ...shadow.sm,
-  },
-  sectionTitle: { ...typography.title, color: colors.text },
-  emptyText: { ...typography.caption, color: colors.textMuted, textAlign: 'center', padding: spacing.sm },
-  input: {
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.background,
-  },
-  textArea: { minHeight: 100, textAlignVertical: 'top' },
-  optionGroup: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  option: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.full,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
-  },
-  optionSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
-  optionText: { fontSize: 14, color: colors.textSecondary },
-  optionTextSelected: { color: colors.textOnPrimary, fontWeight: '700' },
-  photoBtn: {
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 120,
-    overflow: 'hidden',
-    backgroundColor: colors.surfaceSecondary,
-  },
-  photoBtnInner: { alignItems: 'center', gap: spacing.xs, padding: spacing.lg },
-  photoBtnText: { ...typography.label, color: colors.textLight },
-  photo: { width: '100%', height: 200, borderRadius: radius.sm },
-  coordsRow: { flexDirection: 'row', alignItems: 'center', gap: 4, justifyContent: 'center' },
-  coordsText: { ...typography.caption, color: colors.textMuted },
-  submitBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-    ...shadow.sm,
-  },
-  submitBtnDisabled: { opacity: 0.6 },
-  submitBtnText: { color: colors.textOnPrimary, fontWeight: '700', fontSize: 16 },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+      ...shadow.sm,
+    },
+    sectionTitle: { ...typography.title, color: c.text },
+    emptyText: { ...typography.caption, color: c.textMuted, textAlign: 'center', padding: spacing.sm },
+    input: {
+      borderWidth: 1.5,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      fontSize: 15,
+      color: c.text,
+      backgroundColor: c.background,
+    },
+    textArea: { minHeight: 100, textAlignVertical: 'top' },
+    optionGroup: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    option: {
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.full,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      backgroundColor: c.background,
+    },
+    optionSelected: { backgroundColor: c.primary, borderColor: c.primary },
+    optionText: { fontSize: 14, color: c.textSecondary },
+    optionTextSelected: { color: c.textOnPrimary, fontWeight: '700' },
+    photoBtn: {
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: c.border,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 120,
+      overflow: 'hidden',
+      backgroundColor: c.surfaceSecondary,
+    },
+    photoBtnInner: { alignItems: 'center', gap: spacing.xs, padding: spacing.lg },
+    photoBtnText: { ...typography.label, color: c.textLight },
+    photo: { width: '100%', height: 200, borderRadius: radius.sm },
+    coordsRow: { flexDirection: 'row', alignItems: 'center', gap: 4, justifyContent: 'center' },
+    coordsText: { ...typography.caption, color: c.textMuted },
+    submitBtn: {
+      backgroundColor: c.primary,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      alignItems: 'center',
+      ...shadow.sm,
+    },
+    submitBtnDisabled: { opacity: 0.6 },
+    submitBtnText: { color: c.textOnPrimary, fontWeight: '700', fontSize: 16 },
+  });
+}

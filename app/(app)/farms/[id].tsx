@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -19,12 +19,15 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { Farm, farmService } from '@/services/farmService';
 import { CreatePlotPayload, Plot, plotService, PLOT_SITUATION, PLOT_SITUATION_COLOR } from '@/services/plotService';
 
 export default function FarmDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [farm, setFarm] = useState<Farm | null>(null);
   const [plots, setPlots] = useState<Plot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -330,6 +333,8 @@ function Field({
   onChange: (v: string) => void;
   keyboardType?: 'default' | 'numeric';
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
@@ -346,6 +351,8 @@ function Field({
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
@@ -354,117 +361,119 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.md,
-    ...shadow.sm,
-  },
-  sectionTitle: { ...typography.title, color: colors.text },
-  section: { gap: spacing.sm },
-  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  addPlotBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    backgroundColor: colors.primaryLight,
-    borderRadius: radius.full,
-  },
-  addPlotBtnText: { color: colors.primary, fontWeight: '600', fontSize: 13 },
-  field: { gap: spacing.xs },
-  label: { ...typography.label, color: colors.textSecondary },
-  input: {
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.background,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.textOnPrimary, fontWeight: '700', fontSize: 16 },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  infoLabel: { ...typography.caption, color: colors.textMuted },
-  infoValue: { ...typography.body, color: colors.text, fontSize: 15 },
-  plotCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    ...shadow.sm,
-  },
-  plotRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  plotInfo: { flex: 1, gap: 3 },
-  plotName: { ...typography.bodyBold, color: colors.text },
-  plotSub: { ...typography.caption, color: colors.textMuted },
-  plotActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
-  badgeText: { ...typography.micro },
-  deletePlotBtn: {
-    padding: spacing.xs,
-    borderRadius: radius.sm,
-    backgroundColor: colors.dangerBg,
-  },
-  newClaimBtn: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-  },
-  newClaimText: { color: colors.primary, fontWeight: '700', fontSize: 15 },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  modalCard: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  modalTitle: { ...typography.title, color: colors.text },
-  modalActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
-  modalCancel: {
-    flex: 1,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-  },
-  modalCancelText: { color: colors.textMuted, fontWeight: '600' },
-  modalConfirm: {
-    flex: 1,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-  },
-  modalConfirmText: { color: colors.textOnPrimary, fontWeight: '700' },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.background },
+    content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.md,
+      ...shadow.sm,
+    },
+    sectionTitle: { ...typography.title, color: c.text },
+    section: { gap: spacing.sm },
+    rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    addPlotBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.sm,
+      backgroundColor: c.primaryLight,
+      borderRadius: radius.full,
+    },
+    addPlotBtnText: { color: c.primary, fontWeight: '600', fontSize: 13 },
+    field: { gap: spacing.xs },
+    label: { ...typography.label, color: c.textSecondary },
+    input: {
+      borderWidth: 1.5,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      fontSize: 15,
+      color: c.text,
+      backgroundColor: c.background,
+    },
+    button: {
+      backgroundColor: c.primary,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      alignItems: 'center',
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: { color: c.textOnPrimary, fontWeight: '700', fontSize: 16 },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: c.borderLight,
+    },
+    infoLabel: { ...typography.caption, color: c.textMuted },
+    infoValue: { ...typography.body, color: c.text, fontSize: 15 },
+    plotCard: {
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      ...shadow.sm,
+    },
+    plotRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    plotInfo: { flex: 1, gap: 3 },
+    plotName: { ...typography.bodyBold, color: c.text },
+    plotSub: { ...typography.caption, color: c.textMuted },
+    plotActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
+    badgeText: { ...typography.micro },
+    deletePlotBtn: {
+      padding: spacing.xs,
+      borderRadius: radius.sm,
+      backgroundColor: c.dangerBg,
+    },
+    newClaimBtn: {
+      flexDirection: 'row',
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.sm,
+      borderWidth: 1.5,
+      borderColor: c.primary,
+    },
+    newClaimText: { color: c.primary, fontWeight: '700', fontSize: 15 },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      justifyContent: 'flex-end',
+    },
+    modalCard: {
+      backgroundColor: c.surface,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+      padding: spacing.lg,
+      gap: spacing.md,
+    },
+    modalTitle: { ...typography.title, color: c.text },
+    modalActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+    modalCancel: {
+      flex: 1,
+      padding: spacing.md,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      backgroundColor: c.background,
+      borderWidth: 1.5,
+      borderColor: c.border,
+    },
+    modalCancelText: { color: c.textMuted, fontWeight: '600' },
+    modalConfirm: {
+      flex: 1,
+      padding: spacing.md,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      backgroundColor: c.primary,
+    },
+    modalConfirmText: { color: c.textOnPrimary, fontWeight: '700' },
+  });
+}

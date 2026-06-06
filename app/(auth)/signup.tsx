@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -16,11 +16,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import axios from 'axios';
 
-import { colors, gradients, radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors, useGradient } from '@/hooks/useColors';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useAuthContext } from '@/store/authContext';
 
 export default function SignupScreen() {
   const { register } = useAuthContext();
+  const colors = useColors();
+  const gradient = useGradient();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -89,100 +93,48 @@ export default function SignupScreen() {
           <View style={styles.row}>
             <View style={[styles.field, styles.flex1]}>
               <Text style={styles.label}>Nome</Text>
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholder="João"
-                placeholderTextColor={colors.textLight}
-                accessibilityLabel="Campo nome"
-              />
+              <TextInput style={styles.input} value={name} onChangeText={setName}
+                placeholder="João" placeholderTextColor={colors.textLight} accessibilityLabel="Campo nome" />
             </View>
             <View style={[styles.field, styles.flex1]}>
               <Text style={styles.label}>Sobrenome</Text>
-              <TextInput
-                style={styles.input}
-                value={lastName}
-                onChangeText={setLastName}
-                placeholder="Silva"
-                placeholderTextColor={colors.textLight}
-                accessibilityLabel="Campo sobrenome"
-              />
+              <TextInput style={styles.input} value={lastName} onChangeText={setLastName}
+                placeholder="Silva" placeholderTextColor={colors.textLight} accessibilityLabel="Campo sobrenome" />
             </View>
           </View>
 
           <View style={styles.field}>
             <Text style={styles.label}>CPF</Text>
-            <TextInput
-              style={styles.input}
-              value={cpf}
-              onChangeText={setCpf}
-              keyboardType="numeric"
-              placeholder="000.000.000-00"
-              placeholderTextColor={colors.textLight}
-              accessibilityLabel="Campo CPF"
-            />
+            <TextInput style={styles.input} value={cpf} onChangeText={setCpf}
+              keyboardType="numeric" placeholder="000.000.000-00" placeholderTextColor={colors.textLight} accessibilityLabel="Campo CPF" />
           </View>
 
           <View style={styles.field}>
             <Text style={styles.label}>Telefone</Text>
-            <TextInput
-              style={styles.input}
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              placeholder="(11) 99999-9999"
-              placeholderTextColor={colors.textLight}
-              accessibilityLabel="Campo telefone"
-            />
+            <TextInput style={styles.input} value={phone} onChangeText={setPhone}
+              keyboardType="phone-pad" placeholder="(11) 99999-9999" placeholderTextColor={colors.textLight} accessibilityLabel="Campo telefone" />
           </View>
 
           <View style={styles.field}>
             <Text style={styles.label}>E-mail</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-              placeholder="seu@email.com"
-              placeholderTextColor={colors.textLight}
-              accessibilityLabel="Campo e-mail"
-            />
+            <TextInput style={styles.input} value={email} onChangeText={setEmail}
+              autoCapitalize="none" keyboardType="email-address" autoComplete="email"
+              placeholder="seu@email.com" placeholderTextColor={colors.textLight} accessibilityLabel="Campo e-mail" />
           </View>
 
           <View style={styles.field}>
             <Text style={styles.label}>Senha</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoComplete="new-password"
-              placeholder="Mínimo 6 caracteres"
-              placeholderTextColor={colors.textLight}
-              accessibilityLabel="Campo senha"
-            />
+            <TextInput style={styles.input} value={password} onChangeText={setPassword}
+              secureTextEntry autoComplete="new-password"
+              placeholder="Mínimo 6 caracteres" placeholderTextColor={colors.textLight} accessibilityLabel="Campo senha" />
           </View>
 
-          <TouchableOpacity
-            onPress={handleSignup}
-            disabled={loading}
-            accessibilityLabel="Criar conta"
-            style={loading ? styles.buttonDisabledWrap : undefined}
-          >
-            <LinearGradient
-              colors={gradients.primary}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.button}
-            >
-              {loading ? (
-                <ActivityIndicator color={colors.textOnGradient} />
-              ) : (
-                <Text style={styles.buttonText}>Criar conta</Text>
-              )}
+          <TouchableOpacity onPress={handleSignup} disabled={loading} accessibilityLabel="Criar conta"
+            style={loading ? styles.buttonDisabledWrap : undefined}>
+            <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.button}>
+              {loading
+                ? <ActivityIndicator color={colors.textOnGradient} />
+                : <Text style={styles.buttonText}>Criar conta</Text>}
             </LinearGradient>
           </TouchableOpacity>
 
@@ -200,69 +152,38 @@ export default function SignupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.primary },
-  flex1: { flex: 1 },
-  container: {
-    flexGrow: 1,
-    padding: spacing.lg,
-    justifyContent: 'center',
-    gap: spacing.xl,
-  },
-  header: { alignItems: 'center', gap: spacing.sm },
-  brandMark: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brandName: { fontSize: 26, fontWeight: '800', color: colors.textOnPrimary, letterSpacing: -0.5 },
-  brandSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14 },
-  form: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.md,
-    ...shadow.md,
-  },
-  formTitle: { ...typography.title, color: colors.text },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.dangerBg,
-    padding: spacing.sm,
-    borderRadius: radius.sm,
-  },
-  errorText: { color: colors.danger, fontSize: 13, flex: 1 },
-  row: { flexDirection: 'row', gap: spacing.sm },
-  field: { gap: spacing.xs },
-  label: { ...typography.label, color: colors.textSecondary },
-  input: {
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.background,
-  },
-  buttonDisabledWrap: { opacity: 0.6 },
-  button: {
-    borderRadius: radius.xl,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    marginTop: spacing.xs,
-  },
-  buttonText: { color: colors.textOnGradient, fontWeight: '700', fontSize: 16 },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: spacing.xs,
-  },
-  footerText: { color: colors.textMuted, fontSize: 14 },
-  link: { color: colors.primary, fontWeight: '700', fontSize: 14 },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: c.primary },
+    flex1: { flex: 1 },
+    container: { flexGrow: 1, padding: spacing.lg, justifyContent: 'center', gap: spacing.xl },
+    header: { alignItems: 'center', gap: spacing.sm },
+    brandMark: {
+      width: 64, height: 64, borderRadius: 32,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    brandName: { fontSize: 26, fontWeight: '800', color: c.textOnPrimary, letterSpacing: -0.5 },
+    brandSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14 },
+    form: { backgroundColor: c.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, ...shadow.md },
+    formTitle: { ...typography.title, color: c.text },
+    errorBox: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
+      backgroundColor: c.dangerBg, padding: spacing.sm, borderRadius: radius.sm,
+    },
+    errorText: { color: c.danger, fontSize: 13, flex: 1 },
+    row: { flexDirection: 'row', gap: spacing.sm },
+    field: { gap: spacing.xs },
+    label: { ...typography.label, color: c.textSecondary },
+    input: {
+      borderWidth: 1.5, borderColor: c.border, borderRadius: radius.md,
+      padding: spacing.md, fontSize: 15, color: c.text, backgroundColor: c.background,
+    },
+    buttonDisabledWrap: { opacity: 0.6 },
+    button: { borderRadius: radius.xl, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.xs },
+    buttonText: { color: c.textOnGradient, fontWeight: '700', fontSize: 16 },
+    footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: spacing.xs },
+    footerText: { color: c.textMuted, fontSize: 14 },
+    link: { color: c.primary, fontWeight: '700', fontSize: 14 },
+  });
+}

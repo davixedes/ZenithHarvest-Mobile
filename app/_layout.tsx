@@ -6,7 +6,7 @@ import { AuthProvider } from '@/store/authContext';
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <StatusBar style="light" />
+      <StatusBar style="auto" />
       <Stack screenOptions={{ headerShown: false }} />
     </AuthProvider>
   );

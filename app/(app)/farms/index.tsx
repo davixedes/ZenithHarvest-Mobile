@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -15,10 +15,13 @@ import { router, Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { colors, radius, shadow, spacing, typography } from '@/constants/theme';
+import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { Farm, farmService } from '@/services/farmService';
 
 export default function FarmsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [farms, setFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -127,33 +130,35 @@ export default function FarmsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  list: { padding: spacing.md, gap: spacing.sm },
-  listEmpty: { flex: 1 },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    ...shadow.sm,
-  },
-  cardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardBody: { flex: 1, gap: 3 },
-  cardTitle: { ...typography.bodyBold, color: colors.text },
-  cardSub: { ...typography.caption, color: colors.textMuted },
-  cardRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  deleteBtn: {
-    padding: spacing.xs,
-    borderRadius: radius.sm,
-    backgroundColor: colors.dangerBg,
-  },
-});
+function makeStyles(c: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    list: { padding: spacing.md, gap: spacing.sm },
+    listEmpty: { flex: 1 },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      ...shadow.sm,
+    },
+    cardIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: c.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cardBody: { flex: 1, gap: 3 },
+    cardTitle: { ...typography.bodyBold, color: c.text },
+    cardSub: { ...typography.caption, color: c.textMuted },
+    cardRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+    deleteBtn: {
+      padding: spacing.xs,
+      borderRadius: radius.sm,
+      backgroundColor: c.dangerBg,
+    },
+  });
+}
