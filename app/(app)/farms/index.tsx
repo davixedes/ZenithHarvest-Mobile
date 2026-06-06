@@ -92,6 +92,7 @@ export default function FarmsScreen() {
         }}
       />
       <FlatList
+        style={{ flex: 1, backgroundColor: colors.background }}
         data={farms}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, farms.length === 0 && styles.listEmpty]}

@@ -62,17 +62,8 @@ export default function DashboardScreen() {
     >
       {/* Header */}
       <View style={styles.hero}>
-        <View>
-          <Text style={styles.greeting}>Olá, {user?.name ?? 'Produtor'} 👋</Text>
-          <Text style={styles.heroSub}>Acompanhe sua lavoura</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.newClaimFab}
-          onPress={() => router.push('/(app)/claims/new')}
-          accessibilityLabel="Abrir novo sinistro"
-        >
-          <Ionicons name="add" size={22} color={colors.primary} />
-        </TouchableOpacity>
+        <Text style={styles.greeting}>Olá, {user?.name ?? 'Produtor'} 👋</Text>
+        <Text style={styles.heroSub}>Acompanhe sua lavoura</Text>
       </View>
 
       {/* Stats */}
@@ -86,7 +77,6 @@ export default function DashboardScreen() {
       <Section
         title="Minhas Fazendas"
         onSeeAll={() => router.push('/(app)/farms')}
-        onAdd={() => router.push('/(app)/farms/new')}
       >
         {farms.length === 0 ? (
           <EmptyState message="Nenhuma fazenda cadastrada." ionicon="leaf-outline" />
@@ -158,12 +148,10 @@ function StatCard({ label, value, icon, color }: { label: string; value: number;
 function Section({
   title,
   onSeeAll,
-  onAdd,
   children,
 }: {
   title: string;
   onSeeAll?: () => void;
-  onAdd?: () => void;
   children: React.ReactNode;
 }) {
   const colors = useColors();
@@ -172,18 +160,11 @@ function Section({
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        <View style={styles.sectionActions}>
-          {onAdd && (
-            <TouchableOpacity onPress={onAdd} style={styles.addBtn} accessibilityLabel="Adicionar">
-              <Ionicons name="add" size={18} color={colors.primary} />
-            </TouchableOpacity>
-          )}
-          {onSeeAll && (
-            <TouchableOpacity onPress={onSeeAll} accessibilityLabel="Ver todos">
-              <Text style={styles.seeAll}>Ver todos</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        {onSeeAll && (
+          <TouchableOpacity onPress={onSeeAll} accessibilityLabel="Ver todos">
+            <Text style={styles.seeAll}>Ver todos</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <View style={styles.sectionContent}>{children}</View>
     </View>
@@ -196,23 +177,13 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     content: { gap: spacing.lg, paddingBottom: spacing.xxl },
 
     hero: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.lg,
-      paddingBottom: spacing.sm,
+      paddingBottom: spacing.lg,
+      gap: spacing.xs,
     },
     greeting: { ...typography.heading, color: c.text },
-    heroSub: { ...typography.body, color: c.textMuted, fontSize: 14, marginTop: 2 },
-    newClaimFab: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: c.primaryLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
+    heroSub: { ...typography.body, color: c.textMuted, fontSize: 14 },
 
     statsRow: {
       flexDirection: 'row',
@@ -235,16 +206,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     section: { paddingHorizontal: spacing.md, gap: spacing.sm },
     sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     sectionTitle: { ...typography.title, color: c.text },
-    sectionActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     seeAll: { ...typography.label, color: c.primary },
-    addBtn: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      backgroundColor: c.primaryLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     sectionContent: { gap: spacing.sm },
 
     listCard: {

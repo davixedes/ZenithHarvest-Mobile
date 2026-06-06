@@ -50,6 +50,7 @@ export default function PaymentsScreen() {
     <>
       <Stack.Screen options={{ title: 'Pagamentos', headerShown: true }} />
       <FlatList
+        style={{ flex: 1, backgroundColor: colors.background }}
         data={payments}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, payments.length === 0 && styles.listEmpty]}

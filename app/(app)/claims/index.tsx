@@ -46,8 +46,23 @@ export default function ClaimsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Sinistros', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Sinistros',
+          headerShown: true,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => router.push('/(app)/claims/new')}
+              style={{ marginRight: spacing.sm, padding: 4 }}
+              accessibilityLabel="Adicionar novo sinistro"
+            >
+              <Ionicons name="add-circle-outline" size={26} color={colors.textOnPrimary} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
       <FlatList
+        style={{ flex: 1, backgroundColor: colors.background }}
         data={claims}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, claims.length === 0 && styles.listEmpty]}
