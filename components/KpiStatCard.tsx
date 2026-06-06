@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -18,29 +17,6 @@ interface KpiStatCardProps {
 export function KpiStatCard({ label, value, icon, color, progress }: KpiStatCardProps) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const animValue = useRef(new Animated.Value(0)).current;
-  const displayValue = useRef(0);
-  const [shown, setShown] = React.useState(0);
-
-  useEffect(() => {
-    animValue.setValue(0);
-    const listener = animValue.addListener(({ value: v }) => {
-      const next = Math.round(v);
-      if (next !== displayValue.current) {
-        displayValue.current = next;
-        setShown(next);
-      }
-    });
-
-    Animated.timing(animValue, {
-      toValue: value,
-      duration: 700,
-      useNativeDriver: false,
-    }).start();
-
-    return () => animValue.removeListener(listener);
-  }, [value, animValue]);
-
   const barPct = progress != null ? Math.min(Math.max(progress, 0), 1) : null;
 
   return (
@@ -48,16 +24,11 @@ export function KpiStatCard({ label, value, icon, color, progress }: KpiStatCard
       <View style={[styles.iconWrap, { backgroundColor: color + '18' }]}>
         <Ionicons name={icon} size={18} color={color} />
       </View>
-      <Text style={styles.value}>{shown}</Text>
+      <Text style={styles.value}>{value}</Text>
       <Text style={styles.label}>{label}</Text>
       {barPct != null ? (
         <View style={[styles.progressTrack, { backgroundColor: colors.surfaceSecondary }]}>
-          <LinearGradient
-            colors={[color, color + 'AA']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.progressFill, { width: `${barPct * 100}%` }]}
-          />
+          <View style={[styles.progressFill, { width: `${barPct * 100}%`, backgroundColor: color }]} />
         </View>
       ) : null}
     </View>

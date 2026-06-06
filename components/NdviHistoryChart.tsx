@@ -55,13 +55,12 @@ function Segment({ x1, y1, x2, y2, color }: { x1: number; y1: number; x2: number
       style={{
         position: 'absolute',
         left: x1,
-        top: y1,
+        top: y1 - 1.5,
         width: length,
         height: 3,
         backgroundColor: color,
         borderRadius: 2,
         transform: [{ rotate: `${angle}deg` }],
-        transformOrigin: 'left center',
       }}
     />
   );

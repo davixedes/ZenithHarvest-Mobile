@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -26,18 +27,30 @@ export default function ProfileScreen() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   function confirmLogout() {
-    Alert.alert('Sair da conta', 'Deseja encerrar a sessão?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Sair',
-        style: 'destructive',
-        onPress: async () => {
-          setLoggingOut(true);
-          await logout();
-          router.replace('/(auth)/login');
+    const handleLogout = async () => {
+      setLoggingOut(true);
+      try {
+        await logout();
+        router.replace('/(auth)/login');
+      } catch (err) {
+        console.error('Logout failed:', err);
+        setLoggingOut(false);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('Deseja encerrar a sessão?');
+      if (confirmed) handleLogout();
+    } else {
+      Alert.alert('Sair da conta', 'Deseja encerrar a sessão?', [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: handleLogout,
         },
-      },
-    ]);
+      ]);
+    }
   }
 
   return (

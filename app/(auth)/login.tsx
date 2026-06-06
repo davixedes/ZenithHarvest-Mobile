@@ -66,7 +66,7 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <View style={styles.brandMark}>
-            <Ionicons name="leaf" size={28} color={colors.textOnPrimary} />
+            <Ionicons name="leaf" size={28} color={colors.primary} />
           </View>
           <Text style={styles.brandName}>Zenith Harvest</Text>
           <Text style={styles.brandSub}>Seguro agrícola paramétrico</Text>
@@ -157,16 +157,21 @@ export default function LoginScreen() {
 
 function makeStyles(c: ReturnType<typeof useColors>) {
   return StyleSheet.create({
-    flex: { flex: 1, backgroundColor: c.primary },
+    flex: { flex: 1, backgroundColor: '#121212' },
     container: { flexGrow: 1, padding: spacing.lg, justifyContent: 'center', gap: spacing.xl },
     header: { alignItems: 'center', gap: spacing.sm },
     brandMark: {
-      width: 64, height: 64, borderRadius: 32,
-      backgroundColor: 'rgba(255,255,255,0.2)',
-      alignItems: 'center', justifyContent: 'center',
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: '#1E1E1E',
+      borderWidth: 1,
+      borderColor: '#333333',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    brandName: { fontSize: 26, fontWeight: '800', color: c.textOnPrimary, letterSpacing: -0.5 },
-    brandSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14 },
+    brandName: { fontSize: 26, fontWeight: '800', color: '#F7F7F7', letterSpacing: -0.5 },
+    brandSub: { ...typography.body, color: '#8F8F8F', fontSize: 14 },
     card: { backgroundColor: c.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, ...shadow.md },
     cardTitle: { ...typography.title, color: c.text, marginBottom: spacing.xs },
     errorBox: {

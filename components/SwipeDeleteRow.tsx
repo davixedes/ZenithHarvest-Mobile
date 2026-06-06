@@ -1,8 +1,8 @@
 import React, { useMemo, useRef } from 'react';
-import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Swipeable } from 'react-native-gesture-handler';
+import { RectButton, Swipeable } from 'react-native-gesture-handler';
 
 import { radius, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -24,8 +24,8 @@ export function SwipeDeleteRow({
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const swipeRef = useRef<Swipeable>(null);
 
-  if (!enabled) {
-    return <>{children}</>;
+  if (!enabled || Platform.OS === 'web') {
+    return <View style={styles.row}>{children}</View>;
   }
 
   function renderRightActions(
@@ -40,7 +40,7 @@ export function SwipeDeleteRow({
 
     return (
       <Animated.View style={[styles.actionWrap, { transform: [{ scale }] }]}>
-        <TouchableOpacity
+        <RectButton
           style={styles.actionBtn}
           onPress={() => {
             swipeRef.current?.close();
@@ -51,20 +51,28 @@ export function SwipeDeleteRow({
         >
           <Ionicons name="trash-outline" size={22} color={colors.textOnPrimary} />
           <Text style={styles.actionText}>{deleteLabel}</Text>
-        </TouchableOpacity>
+        </RectButton>
       </Animated.View>
     );
   }
 
   return (
-    <Swipeable ref={swipeRef} friction={2} overshootRight={false} renderRightActions={renderRightActions}>
-      {children}
+    <Swipeable
+      ref={swipeRef}
+      friction={2}
+      overshootRight={false}
+      containerStyle={styles.row}
+      renderRightActions={renderRightActions}
+    >
+      <View style={styles.rowContent}>{children}</View>
     </Swipeable>
   );
 }
 
 function makeStyles(c: ReturnType<typeof useColors>) {
   return StyleSheet.create({
+    row: { width: '100%' },
+    rowContent: { width: '100%' },
     actionWrap: {
       width: 88,
       marginLeft: spacing.sm,
