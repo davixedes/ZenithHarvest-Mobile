@@ -36,14 +36,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
+        console.log('[AuthContext] Initializing state...');
         const token = await storage.getItem(TOKEN_KEY);
         const userJson = await storage.getItem('zenith_user');
+        console.log('[AuthContext] Storage data:', { hasToken: !!token, hasUser: !!userJson });
         if (token && userJson) {
           setState({ user: JSON.parse(userJson), token, isLoading: false });
         } else {
           setState((s) => ({ ...s, isLoading: false }));
         }
-      } catch {
+      } catch (err) {
+        console.error('[AuthContext] Init error:', err);
         setState((s) => ({ ...s, isLoading: false }));
       }
     })();
@@ -82,9 +85,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    await storage.deleteItem(TOKEN_KEY);
-    await storage.deleteItem('zenith_user');
-    setState({ user: null, token: null, isLoading: false });
+    try {
+      await storage.deleteItem(TOKEN_KEY);
+      await storage.deleteItem('zenith_user');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      setState({ user: null, token: null, isLoading: false });
+    }
   }, []);
 
   return (
