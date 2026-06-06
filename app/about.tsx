@@ -29,6 +29,11 @@ export default function AboutScreen() {
         </View>
 
         <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Equipe</Text>
+          <InfoRow label="Integrante" value="Kaue Samartino" />
+        </View>
+
+        <View style={styles.card}>
           <Text style={styles.sectionTitle}>Sobre o Produto</Text>
           <Text style={styles.body}>
             O Zenith Harvest é uma plataforma de seguro paramétrico agrícola operada por
