@@ -1,13 +1,12 @@
-import { useColorScheme } from 'react-native';
-
+import { useThemeContext } from '@/store/themeContext';
 import { colors, darkColors, gradients } from '@/constants/theme';
 
 export function useColors() {
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? darkColors : colors;
+  const { isDark } = useThemeContext();
+  return isDark ? darkColors : colors;
 }
 
 export function useGradient() {
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? gradients.primaryDark : gradients.primary;
+  const { isDark } = useThemeContext();
+  return isDark ? gradients.primaryDark : gradients.primary;
 }

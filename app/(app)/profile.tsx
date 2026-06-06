@@ -4,6 +4,7 @@ import {
   Alert,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -15,9 +16,11 @@ import { router, Stack } from 'expo-router';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { useAuthContext } from '@/store/authContext';
+import { useThemeContext } from '@/store/themeContext';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthContext();
+  const { isDark, toggleTheme } = useThemeContext();
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -54,6 +57,19 @@ export default function ProfileScreen() {
           <InfoRow label="Nome" value={user?.name ?? '—'} />
           <InfoRow label="E-mail" value={user?.email ?? '—'} />
           <InfoRow label="ID" value={user?.id ?? '—'} />
+        </View>
+
+        <View style={styles.aboutBtn}>
+          <Ionicons name={isDark ? 'moon' : 'sunny-outline'} size={20} color={colors.textSecondary} />
+          <Text style={styles.aboutBtnText}>Modo escuro</Text>
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: colors.border, true: colors.primary }}
+            thumbColor={isDark ? colors.secondary : colors.surface}
+            accessibilityLabel="Alternar modo escuro"
+            style={{ marginLeft: 'auto' }}
+          />
         </View>
 
         <TouchableOpacity
