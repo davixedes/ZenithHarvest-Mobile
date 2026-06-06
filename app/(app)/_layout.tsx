@@ -50,6 +50,7 @@ export default function AppLayout() {
         headerTintColor: colors.text,
         headerTitleStyle: { fontWeight: '700', fontSize: 17, color: colors.text },
         headerShadowVisible: false,
+        sceneStyle: { flex: 1, backgroundColor: colors.background },
       }}
     >
       <Tabs.Screen

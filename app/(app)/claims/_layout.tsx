@@ -11,6 +11,7 @@ export default function ClaimsLayout() {
         headerTintColor: colors.text,
         headerTitleStyle: { fontWeight: '700', fontSize: 17, color: colors.text },
         headerShadowVisible: false,
+        contentStyle: { flex: 1, backgroundColor: colors.background },
       }}
     />
   );
