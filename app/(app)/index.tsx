@@ -60,7 +60,7 @@ export default function DashboardScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={colors.primary} />
       }
     >
-      {/* Hero */}
+      {/* Header */}
       <View style={styles.hero}>
         <View>
           <Text style={styles.greeting}>Olá, {user?.name ?? 'Produtor'} 👋</Text>
@@ -71,7 +71,7 @@ export default function DashboardScreen() {
           onPress={() => router.push('/(app)/claims/new')}
           accessibilityLabel="Abrir novo sinistro"
         >
-          <Ionicons name="add" size={22} color={colors.textOnPrimary} />
+          <Ionicons name="add" size={22} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -199,18 +199,17 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: c.primary,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.lg,
-      paddingBottom: spacing.xl,
+      paddingBottom: spacing.sm,
     },
-    greeting: { ...typography.heading, color: c.textOnPrimary },
-    heroSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14, marginTop: 2 },
+    greeting: { ...typography.heading, color: c.text },
+    heroSub: { ...typography.body, color: c.textMuted, fontSize: 14, marginTop: 2 },
     newClaimFab: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: 'rgba(255,255,255,0.25)',
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: c.primaryLight,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -219,7 +218,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       flexDirection: 'row',
       gap: spacing.sm,
       paddingHorizontal: spacing.md,
-      marginTop: -spacing.md,
     },
     statCard: {
       flex: 1,
