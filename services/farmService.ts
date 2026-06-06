@@ -1,47 +1,66 @@
 import api from './api';
+import { extractCollection, extractEntity } from '@/utils/hateoas';
 
 export interface Farm {
   id: string;
+  code: number;
+  userId: string;
   name: string;
-  area: number;
-  biome: string;
+  carRegistration: string;
+  nirf: string;
+  latitude: number;
+  longitude: number;
+  totalAreaHectares: number;
   state: string;
-  city: string;
-  plots?: Plot[];
+  biomeId?: number;
+  propertyType?: string;
+  active: boolean;
+  createdAt: string;
 }
 
-export interface Plot {
-  id: string;
+export interface CreateFarmPayload {
+  userId: string;
   name: string;
-  area: number;
-  cropType: string;
-  situation: 'NORMAL' | 'ALERT' | 'CRITICAL';
-  latitude?: number;
-  longitude?: number;
+  carRegistration: string;
+  nirf: string;
+  latitude: number;
+  longitude: number;
+  totalAreaHectares: number;
+  state: string;
+  biomeId?: number;
+  propertyType?: string;
 }
 
-export interface FarmPayload {
+export interface UpdateFarmPayload {
   name: string;
-  area: number;
-  biome: string;
+  carRegistration: string;
+  nirf: string;
+  latitude: number;
+  longitude: number;
+  totalAreaHectares: number;
   state: string;
-  city: string;
+  biomeId?: number;
 }
 
 export const farmService = {
   async list(): Promise<Farm[]> {
-    const { data } = await api.get<Farm[]>('/api/farms');
-    return data;
+    const { data } = await api.get('/api/farms');
+    return extractCollection<Farm>(data);
   },
 
   async getById(id: string): Promise<Farm> {
-    const { data } = await api.get<Farm>(`/api/farms/${id}`);
-    return data;
+    const { data } = await api.get(`/api/farms/${id}`);
+    return extractEntity<Farm>(data);
   },
 
-  async update(id: string, payload: Partial<FarmPayload>): Promise<Farm> {
-    const { data } = await api.put<Farm>(`/api/farms/${id}`, payload);
-    return data;
+  async create(payload: CreateFarmPayload): Promise<Farm> {
+    const { data } = await api.post('/api/farms', payload);
+    return extractEntity<Farm>(data);
+  },
+
+  async update(id: string, payload: UpdateFarmPayload): Promise<Farm> {
+    const { data } = await api.put(`/api/farms/${id}`, payload);
+    return extractEntity<Farm>(data);
   },
 
   async delete(id: string): Promise<void> {

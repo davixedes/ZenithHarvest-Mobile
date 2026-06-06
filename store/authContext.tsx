@@ -1,17 +1,18 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { TOKEN_KEY } from '@/services/api';
-import { AuthResponse, authService, LoginPayload, RegisterPayload } from '@/services/authService';
+import { authService, LoginPayload, RegisterPayload, UserResponse } from '@/services/authService';
 import { storage } from '@/utils/storage';
 
-interface User {
+interface AuthUser {
   id: string;
   name: string;
+  lastName: string;
   email: string;
 }
 
 interface AuthState {
-  user: User | null;
+  user: AuthUser | null;
   token: string | null;
   isLoading: boolean;
 }
@@ -48,26 +49,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  const persist = useCallback(async (res: AuthResponse) => {
-    await storage.setItem(TOKEN_KEY, res.token);
-    await storage.setItem('zenith_user', JSON.stringify(res.user));
-    setState({ user: res.user, token: res.token, isLoading: false });
+  const persistSession = useCallback(async (token: string, userRes: UserResponse) => {
+    const user: AuthUser = {
+      id: userRes.id,
+      name: userRes.name,
+      lastName: userRes.lastName,
+      email: userRes.email,
+    };
+    await storage.setItem(TOKEN_KEY, token);
+    await storage.setItem('zenith_user', JSON.stringify(user));
+    setState({ user, token, isLoading: false });
   }, []);
 
   const login = useCallback(
     async (payload: LoginPayload) => {
-      const res = await authService.login(payload);
-      await persist(res);
+      const authRes = await authService.login(payload);
+      // Persiste o token primeiro para que o interceptor o envie no /me
+      await storage.setItem(TOKEN_KEY, authRes.token);
+      const userRes = await authService.getMe();
+      await persistSession(authRes.token, userRes);
     },
-    [persist],
+    [persistSession],
   );
 
   const register = useCallback(
     async (payload: RegisterPayload) => {
-      const res = await authService.register(payload);
-      await persist(res);
+      await authService.register(payload);
+      // auto-login após cadastro para obter o JWT
+      await login({ email: payload.email, password: payload.password });
     },
-    [persist],
+    [login],
   );
 
   const logout = useCallback(async () => {
