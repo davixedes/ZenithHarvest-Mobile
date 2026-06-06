@@ -28,7 +28,8 @@ export default function ProfileScreen() {
         onPress: async () => {
           setLoggingOut(true);
           await logout();
-          router.replace('/(auth)/login');
+          // A navegação é tratada pelo <Redirect> em (app)/_layout.tsx
+          // quando isAuthenticated vira false
         },
       },
     ]);
