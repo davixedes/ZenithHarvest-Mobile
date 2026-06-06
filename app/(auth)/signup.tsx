@@ -21,13 +21,16 @@ export default function SignupScreen() {
   const { register } = useAuthContext();
 
   const [name, setName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   async function handleSignup() {
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    if (!name.trim() || !lastName.trim() || !cpf.trim() || !phone.trim() || !email.trim() || !password.trim()) {
       setError('Preencha todos os campos.');
       return;
     }
@@ -38,10 +41,17 @@ export default function SignupScreen() {
     setError('');
     setLoading(true);
     try {
-      await register({ name: name.trim(), email: email.trim().toLowerCase(), password });
+      await register({
+        name: name.trim(),
+        lastName: lastName.trim(),
+        cpf: cpf.trim().replace(/\D/g, ''),
+        phone: phone.trim().replace(/\D/g, ''),
+        email: email.trim().toLowerCase(),
+        password,
+      });
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 409) {
-        setError('E-mail já cadastrado.');
+        setError('E-mail ou CPF já cadastrado.');
       } else {
         setError('Falha ao criar conta. Tente novamente.');
       }
@@ -67,16 +77,54 @@ export default function SignupScreen() {
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
+          <View style={styles.row}>
+            <View style={[styles.field, styles.flex1]}>
+              <Text style={styles.label}>Nome</Text>
+              <TextInput
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+                placeholder="João"
+                placeholderTextColor={colors.textMuted}
+                accessibilityLabel="Campo nome"
+              />
+            </View>
+            <View style={[styles.field, styles.flex1]}>
+              <Text style={styles.label}>Sobrenome</Text>
+              <TextInput
+                style={styles.input}
+                value={lastName}
+                onChangeText={setLastName}
+                placeholder="Silva"
+                placeholderTextColor={colors.textMuted}
+                accessibilityLabel="Campo sobrenome"
+              />
+            </View>
+          </View>
+
           <View style={styles.field}>
-            <Text style={styles.label}>Nome completo</Text>
+            <Text style={styles.label}>CPF</Text>
             <TextInput
               style={styles.input}
-              value={name}
-              onChangeText={setName}
-              autoComplete="name"
-              placeholder="João da Silva"
+              value={cpf}
+              onChangeText={setCpf}
+              keyboardType="numeric"
+              placeholder="000.000.000-00"
               placeholderTextColor={colors.textMuted}
-              accessibilityLabel="Campo nome"
+              accessibilityLabel="Campo CPF"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Telefone</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+              placeholder="(11) 99999-9999"
+              placeholderTextColor={colors.textMuted}
+              accessibilityLabel="Campo telefone"
             />
           </View>
 
@@ -138,6 +186,7 @@ export default function SignupScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
+  flex1: { flex: 1 },
   container: {
     flexGrow: 1,
     padding: spacing.lg,
@@ -167,6 +216,7 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     borderRadius: radius.sm,
   },
+  row: { flexDirection: 'row', gap: spacing.sm },
   field: { gap: spacing.xs },
   label: { ...typography.label, color: colors.text },
   input: {
