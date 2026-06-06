@@ -1,9 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
-import * as SecureStore from 'expo-secure-store';
-
 import { TOKEN_KEY } from '@/services/api';
 import { AuthResponse, authService, LoginPayload, RegisterPayload } from '@/services/authService';
+import { storage } from '@/utils/storage';
 
 interface User {
   id: string;
@@ -36,8 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const token = await SecureStore.getItemAsync(TOKEN_KEY);
-        const userJson = await SecureStore.getItemAsync('zenith_user');
+        const token = await storage.getItem(TOKEN_KEY);
+        const userJson = await storage.getItem('zenith_user');
         if (token && userJson) {
           setState({ user: JSON.parse(userJson), token, isLoading: false });
         } else {
@@ -50,8 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const persist = useCallback(async (res: AuthResponse) => {
-    await SecureStore.setItemAsync(TOKEN_KEY, res.token);
-    await SecureStore.setItemAsync('zenith_user', JSON.stringify(res.user));
+    await storage.setItem(TOKEN_KEY, res.token);
+    await storage.setItem('zenith_user', JSON.stringify(res.user));
     setState({ user: res.user, token: res.token, isLoading: false });
   }, []);
 
@@ -72,8 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    await SecureStore.deleteItemAsync('zenith_user');
+    await storage.deleteItem(TOKEN_KEY);
+    await storage.deleteItem('zenith_user');
     setState({ user: null, token: null, isLoading: false });
   }, []);
 

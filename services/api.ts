@@ -1,7 +1,7 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
 
 import { API_BASE_URL } from '@/constants/api';
+import { storage } from '@/utils/storage';
 
 export const TOKEN_KEY = 'zenith_jwt';
 
@@ -12,7 +12,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync(TOKEN_KEY);
+  const token = await storage.getItem(TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -23,7 +23,7 @@ api.interceptors.response.use(
   (res) => res,
   async (err) => {
     if (err.response?.status === 401) {
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await storage.deleteItem(TOKEN_KEY);
     }
     return Promise.reject(err);
   },
