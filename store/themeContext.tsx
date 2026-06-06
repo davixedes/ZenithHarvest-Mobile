@@ -13,6 +13,20 @@ interface ThemeContextValue {
   toggleTheme: () => void;
 }
 
+async function loadSavedTheme(): Promise<ThemeMode | null> {
+  try {
+    const saved = await SecureStore.getItemAsync(THEME_KEY);
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch {}
+  return null;
+}
+
+async function persistTheme(mode: ThemeMode) {
+  try {
+    await SecureStore.setItemAsync(THEME_KEY, mode);
+  } catch {}
+}
+
 const ThemeContext = createContext<ThemeContextValue>({
   isDark: false,
   mode: 'system',
@@ -24,8 +38,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>('system');
 
   useEffect(() => {
-    SecureStore.getItemAsync(THEME_KEY).then((saved) => {
-      if (saved === 'light' || saved === 'dark') setMode(saved);
+    loadSavedTheme().then((saved) => {
+      if (saved) setMode(saved);
     });
   }, []);
 
@@ -34,7 +48,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = useCallback(() => {
     setMode((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
-      SecureStore.setItemAsync(THEME_KEY, next);
+      persistTheme(next);
       return next;
     });
   }, []);
