@@ -21,6 +21,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
+import { useToast } from '@/components/Toast';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import {
@@ -43,6 +44,7 @@ const SUBCATEGORY_ENTRIES = Object.entries(CLAIM_SUBCATEGORY).map(([k, v]) => ({
 export default function NewClaimScreen() {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { showToast } = useToast();
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [selectedPolicyId, setSelectedPolicyId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
@@ -128,12 +130,10 @@ export default function NewClaimScreen() {
         openingGpsLat: coords?.latitude,
         openingGpsLng: coords?.longitude,
       });
-      Alert.alert('Sinistro aberto', 'Seu sinistro foi registrado com sucesso.', [
-        { text: 'Ver detalhes', onPress: () => router.replace(`/(app)/claims/${claim.id}`) },
-        { text: 'Voltar', onPress: () => router.back() },
-      ]);
+      showToast('Sinistro registrado com sucesso!', 'success');
+      router.replace(`/(app)/claims/${claim.id}`);
     } catch {
-      Alert.alert('Erro', 'Não foi possível abrir o sinistro. Tente novamente.');
+      showToast('Não foi possível abrir o sinistro. Tente novamente.', 'error');
     } finally {
       setSubmitting(false);
     }

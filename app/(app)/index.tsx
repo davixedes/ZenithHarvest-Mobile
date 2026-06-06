@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,7 +12,9 @@ import { router } from 'expo-router';
 
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { KpiStatCard } from '@/components/KpiStatCard';
 import { LoadingState } from '@/components/LoadingState';
+import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { Claim, CLAIM_CATEGORY, CLAIM_SITUATION, CLAIM_SITUATION_COLOR, claimService } from '@/services/claimService';
@@ -46,18 +47,26 @@ export default function DashboardScreen() {
 
   useEffect(() => { load(); }, [load]);
 
-  if (loading) return <LoadingState />;
+  if (loading) return <LoadingState variant="dashboard" />;
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   const openClaims = claims.filter((c) => c.claimSituationId === 1).length;
   const recentClaims = claims.slice(0, 3);
+  const totalArea = farms.reduce((sum, farm) => sum + farm.totalAreaHectares, 0);
+  const openRatio = claims.length > 0 ? openClaims / claims.length : 0;
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={colors.primary} />
+        <ZenithRefreshControl
+          refreshing={refreshing}
+          onRefresh={() => {
+            setRefreshing(true);
+            load();
+          }}
+        />
       }
     >
       {/* Header */}
@@ -68,10 +77,31 @@ export default function DashboardScreen() {
 
       {/* Stats */}
       <View style={styles.statsRow}>
-        <StatCard label="Fazendas" value={farms.length} icon="leaf" color={colors.primary} />
-        <StatCard label="Sinistros" value={claims.length} icon="document-text" color={colors.info} />
-        <StatCard label="Em aberto" value={openClaims} icon="time" color={colors.warning} />
+        <KpiStatCard label="Fazendas" value={farms.length} icon="leaf" color={colors.primary} />
+        <KpiStatCard
+          label="Sinistros"
+          value={claims.length}
+          icon="document-text"
+          color={colors.info}
+          progress={claims.length > 0 ? 1 - openRatio : undefined}
+        />
+        <KpiStatCard
+          label="Em aberto"
+          value={openClaims}
+          icon="time"
+          color={colors.warning}
+          progress={openRatio}
+        />
       </View>
+
+      {totalArea > 0 ? (
+        <View style={[styles.areaBanner, { backgroundColor: colors.primaryLight }]}>
+          <Ionicons name="map-outline" size={16} color={colors.primary} />
+          <Text style={[styles.areaBannerText, { color: colors.primaryDark }]}>
+            {totalArea.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} ha monitorados
+          </Text>
+        </View>
+      ) : null}
 
       {/* Farms */}
       <Section
@@ -133,18 +163,6 @@ export default function DashboardScreen() {
   );
 }
 
-function StatCard({ label, value, icon, color }: { label: string; value: number; icon: React.ComponentProps<typeof Ionicons>['name']; color: string }) {
-  const colors = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  return (
-    <View style={[styles.statCard, { borderTopColor: color }]}>
-      <Ionicons name={icon} size={20} color={color} />
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
 function Section({
   title,
   onSeeAll,
@@ -190,18 +208,16 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       gap: spacing.sm,
       paddingHorizontal: spacing.md,
     },
-    statCard: {
-      flex: 1,
-      backgroundColor: c.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
+    areaBanner: {
+      flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.xs,
-      borderTopWidth: 3,
-      ...shadow.sm,
+      marginHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.full,
     },
-    statValue: { ...typography.heading, color: c.text, fontSize: 24 },
-    statLabel: { ...typography.micro, color: c.textMuted, textTransform: 'uppercase' },
+    areaBannerText: { ...typography.label, fontWeight: '600' },
 
     section: { paddingHorizontal: spacing.md, gap: spacing.sm },
     sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

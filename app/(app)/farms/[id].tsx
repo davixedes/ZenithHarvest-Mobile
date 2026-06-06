@@ -19,18 +19,31 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
+import { NdviHistoryChart } from '@/components/NdviHistoryChart';
+import { useToast } from '@/components/Toast';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { Crop, cropService } from '@/services/cropService';
 import { Farm, farmService } from '@/services/farmService';
-import { CreatePlotPayload, Plot, plotService, PLOT_SITUATION, PLOT_SITUATION_COLOR } from '@/services/plotService';
+import {
+  CreatePlotPayload,
+  NdviHistorico,
+  Plot,
+  plotService,
+  PLOT_SITUATION,
+  PLOT_SITUATION_COLOR,
+} from '@/services/plotService';
 
 export default function FarmDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { showToast } = useToast();
   const [farm, setFarm] = useState<Farm | null>(null);
   const [plots, setPlots] = useState<Plot[]>([]);
+  const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null);
+  const [ndviHistory, setNdviHistory] = useState<NdviHistorico[]>([]);
+  const [ndviLoading, setNdviLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
@@ -60,6 +73,11 @@ export default function FarmDetailScreen() {
       ]);
       setFarm(farmData);
       setPlots(plotsData);
+      if (plotsData.length > 0) {
+        setSelectedPlotId(plotsData[0].id);
+      } else {
+        setSelectedPlotId(null);
+      }
       setName(farmData.name);
       setCarRegistration(farmData.carRegistration);
       setNirf(farmData.nirf);
@@ -75,6 +93,31 @@ export default function FarmDetailScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!selectedPlotId) {
+      setNdviHistory([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setNdviLoading(true);
+    plotService
+      .getNdviHistorico(selectedPlotId)
+      .then((data) => {
+        if (!cancelled) setNdviHistory(data);
+      })
+      .catch(() => {
+        if (!cancelled) setNdviHistory([]);
+      })
+      .finally(() => {
+        if (!cancelled) setNdviLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPlotId]);
 
   async function handleSave() {
     if (!name.trim() || !totalAreaHectares.trim()) {
@@ -94,8 +137,9 @@ export default function FarmDetailScreen() {
       });
       setFarm(updated);
       setEditing(false);
+      showToast('Fazenda atualizada com sucesso.', 'success');
     } catch {
-      Alert.alert('Erro', 'Não foi possível salvar as alterações.');
+      showToast('Não foi possível salvar as alterações.', 'error');
     } finally {
       setSaving(false);
     }
@@ -127,12 +171,14 @@ export default function FarmDetailScreen() {
       };
       const newPlot = await plotService.create(payload);
       setPlots((prev) => [...prev, newPlot]);
+      setSelectedPlotId(newPlot.id);
       setPlotModal(false);
       setPlotIdentifier('');
       setPlotArea('');
       setSelectedCropId(null);
+      showToast('Talhão cadastrado com sucesso.', 'success');
     } catch {
-      Alert.alert('Erro', 'Não foi possível cadastrar o talhão.');
+      showToast('Não foi possível cadastrar o talhão.', 'error');
     } finally {
       setSavingPlot(false);
     }
@@ -147,16 +193,24 @@ export default function FarmDetailScreen() {
         onPress: async () => {
           try {
             await plotService.delete(plot.id);
-            setPlots((prev) => prev.filter((p) => p.id !== plot.id));
+            setPlots((prev) => {
+              const next = prev.filter((p) => p.id !== plot.id);
+              setSelectedPlotId((current) => {
+                if (current !== plot.id) return current;
+                return next[0]?.id ?? null;
+              });
+              return next;
+            });
+            showToast('Talhão removido com sucesso.', 'success');
           } catch {
-            Alert.alert('Erro', 'Não foi possível remover o talhão.');
+            showToast('Não foi possível remover o talhão.', 'error');
           }
         },
       },
     ]);
   }
 
-  if (loading) return <LoadingState />;
+  if (loading) return <LoadingState variant="detail" />;
   if (error || !farm) return <ErrorState message={error} onRetry={load} />;
 
   return (
@@ -235,8 +289,14 @@ export default function FarmDetailScreen() {
             plots.map((plot) => {
               const color = PLOT_SITUATION_COLOR[plot.plotSituationId] ?? colors.textMuted;
               const label = PLOT_SITUATION[plot.plotSituationId] ?? `Situação ${plot.plotSituationId}`;
+              const isSelected = selectedPlotId === plot.id;
               return (
-                <View key={plot.id} style={styles.plotCard}>
+                <TouchableOpacity
+                  key={plot.id}
+                  style={[styles.plotCard, isSelected && styles.plotCardSelected]}
+                  onPress={() => setSelectedPlotId(plot.id)}
+                  accessibilityLabel={`Talhão ${plot.identifier}`}
+                >
                   <View style={styles.plotRow}>
                     <View style={styles.plotInfo}>
                       <Text style={styles.plotName}>{plot.identifier}</Text>
@@ -255,11 +315,19 @@ export default function FarmDetailScreen() {
                       </TouchableOpacity>
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })
           )}
         </View>
+
+        {plots.length > 0 ? (
+          <NdviHistoryChart
+            data={ndviHistory}
+            loading={ndviLoading}
+            emptyMessage="Sem leituras NDVI para o talhão selecionado."
+          />
+        ) : null}
 
         <TouchableOpacity
           style={styles.newClaimBtn}
@@ -463,6 +531,12 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       borderRadius: radius.md,
       padding: spacing.md,
       ...shadow.sm,
+      borderWidth: 1.5,
+      borderColor: 'transparent',
+    },
+    plotCardSelected: {
+      borderColor: c.primary,
+      backgroundColor: c.primaryLight,
     },
     plotRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     plotInfo: { flex: 1, gap: 3 },

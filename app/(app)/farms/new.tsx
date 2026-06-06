@@ -21,11 +21,13 @@ import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { farmService } from '@/services/farmService';
 import { useAuthContext } from '@/store/authContext';
+import { useToast } from '@/components/Toast';
 
 export default function NewFarmScreen() {
   const { user } = useAuthContext();
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { showToast } = useToast();
 
   const [name, setName] = useState('');
   const [carRegistration, setCarRegistration] = useState('');
@@ -80,12 +82,10 @@ export default function NewFarmScreen() {
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
       });
-      Alert.alert('Fazenda cadastrada!', `"${farm.name}" foi registrada com sucesso.`, [
-        { text: 'Ver fazenda', onPress: () => router.replace(`/(app)/farms/${farm.id}`) },
-        { text: 'Voltar', onPress: () => router.back() },
-      ]);
+      showToast(`"${farm.name}" cadastrada com sucesso!`, 'success');
+      router.replace(`/(app)/farms/${farm.id}`);
     } catch {
-      Alert.alert('Erro', 'Não foi possível cadastrar a fazenda. Verifique os dados e tente novamente.');
+      showToast('Não foi possível cadastrar a fazenda.', 'error');
     } finally {
       setSaving(false);
     }

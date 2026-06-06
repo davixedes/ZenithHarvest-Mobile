@@ -16,6 +16,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import axios from 'axios';
 
+import { API_BASE_URL } from '@/constants/api';
+
 import { useColors, useGradient } from '@/hooks/useColors';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useAuthContext } from '@/store/authContext';
@@ -44,6 +46,10 @@ export default function LoginScreen() {
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         setError('E-mail ou senha incorretos.');
+      } else if (axios.isAxiosError(err) && !err.response) {
+        setError(
+          `Não foi possível conectar em ${API_BASE_URL}. Verifique se o gateway está rodando e se EXPO_PUBLIC_API_URL aponta para o IP correto (não use localhost no celular).`
+        );
       } else {
         setError('Falha ao conectar. Verifique sua conexão.');
       }

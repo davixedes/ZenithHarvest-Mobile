@@ -1,13 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Alert,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack } from 'expo-router';
@@ -15,6 +7,9 @@ import { router, Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
+import { SwipeDeleteRow } from '@/components/SwipeDeleteRow';
+import { useToast } from '@/components/Toast';
+import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { Farm, farmService } from '@/services/farmService';
@@ -22,6 +17,7 @@ import { Farm, farmService } from '@/services/farmService';
 export default function FarmsScreen() {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { showToast } = useToast();
   const [farms, setFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,29 +45,33 @@ export default function FarmsScreen() {
     load();
   }, [load]);
 
-  function confirmDelete(farm: Farm) {
-    Alert.alert(
-      'Remover fazenda',
-      `Deseja remover "${farm.name}"? Esta ação não pode ser desfeita.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await farmService.delete(farm.id);
-              setFarms((prev) => prev.filter((f) => f.id !== farm.id));
-            } catch {
-              Alert.alert('Erro', 'Não foi possível remover a fazenda.');
-            }
+  const confirmDelete = useCallback(
+    (farm: Farm) => {
+      Alert.alert(
+        'Remover fazenda',
+        `Deseja remover "${farm.name}"? Esta ação não pode ser desfeita.`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Remover',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await farmService.delete(farm.id);
+                setFarms((prev) => prev.filter((f) => f.id !== farm.id));
+                showToast(`"${farm.name}" removida com sucesso.`, 'success');
+              } catch {
+                showToast('Não foi possível remover a fazenda.', 'error');
+              }
+            },
           },
-        },
-      ],
-    );
-  }
+        ]
+      );
+    },
+    [showToast]
+  );
 
-  if (loading) return <LoadingState />;
+  if (loading) return <LoadingState variant="list" />;
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   return (
@@ -96,35 +96,26 @@ export default function FarmsScreen() {
         data={farms}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, farms.length === 0 && styles.listEmpty]}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
-        }
+        refreshControl={<ZenithRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={<EmptyState message="Nenhuma fazenda cadastrada." ionicon="leaf-outline" />}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push(`/(app)/farms/${item.id}`)}
-            accessibilityLabel={`Fazenda ${item.name}`}
-          >
-            <View style={styles.cardIcon}>
-              <Ionicons name="leaf" size={20} color={colors.primary} />
-            </View>
-            <View style={styles.cardBody}>
-              <Text style={styles.cardTitle}>{item.name}</Text>
-              <Text style={styles.cardSub}>{item.totalAreaHectares} ha · {item.state}</Text>
-              <Text style={styles.cardSub}>CAR: {item.carRegistration}</Text>
-            </View>
-            <View style={styles.cardRight}>
-              <TouchableOpacity
-                onPress={() => confirmDelete(item)}
-                style={styles.deleteBtn}
-                accessibilityLabel={`Remover fazenda ${item.name}`}
-              >
-                <Ionicons name="trash-outline" size={18} color={colors.danger} />
-              </TouchableOpacity>
+          <SwipeDeleteRow onDelete={() => confirmDelete(item)}>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/(app)/farms/${item.id}`)}
+              accessibilityLabel={`Fazenda ${item.name}`}
+            >
+              <View style={styles.cardIcon}>
+                <Ionicons name="leaf" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.cardBody}>
+                <Text style={styles.cardTitle}>{item.name}</Text>
+                <Text style={styles.cardSub}>{item.totalAreaHectares} ha · {item.state}</Text>
+                <Text style={styles.cardSub}>CAR: {item.carRegistration}</Text>
+              </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </SwipeDeleteRow>
         )}
       />
     </>
@@ -155,11 +146,5 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     cardBody: { flex: 1, gap: 3 },
     cardTitle: { ...typography.bodyBold, color: c.text },
     cardSub: { ...typography.caption, color: c.textMuted },
-    cardRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-    deleteBtn: {
-      padding: spacing.xs,
-      borderRadius: radius.sm,
-      backgroundColor: c.dangerBg,
-    },
   });
 }

@@ -4,8 +4,12 @@ import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 
+import { ClaimTimeline } from '@/components/ClaimTimeline';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
+import { NdviGauge } from '@/components/NdviGauge';
+import { NdviHistoryChart } from '@/components/NdviHistoryChart';
+import { useToast } from '@/components/Toast';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import {
@@ -16,8 +20,8 @@ import {
   CLAIM_SUBCATEGORY,
   claimService,
 } from '@/services/claimService';
-
-const TIMELINE_IDS = [1, 2, 3, 5]; // Aberto → Em análise → Aprovado → Pago
+import { NdviHistorico, plotService } from '@/services/plotService';
+import { policyService } from '@/services/policyService';
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -33,26 +37,14 @@ function formatDate(iso: string) {
   }).format(new Date(iso));
 }
 
-function NdviBar({ label, value }: { label: string; value: number }) {
-  const colors = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  const pct = Math.min(Math.max(value, 0), 1);
-  return (
-    <View style={styles.ndviRow}>
-      <Text style={styles.ndviLabel}>{label}</Text>
-      <View style={styles.ndviTrack}>
-        <View style={[styles.ndviFill, { width: `${pct * 100}%` as any }]} />
-      </View>
-      <Text style={styles.ndviValue}>{value.toFixed(3)}</Text>
-    </View>
-  );
-}
-
 export default function ClaimDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { showToast } = useToast();
   const [claim, setClaim] = useState<Claim | null>(null);
+  const [ndviHistory, setNdviHistory] = useState<NdviHistorico[]>([]);
+  const [ndviLoading, setNdviLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -61,6 +53,17 @@ export default function ClaimDetailScreen() {
       setError('');
       const data = await claimService.getById(id);
       setClaim(data);
+
+      setNdviLoading(true);
+      try {
+        const policy = await policyService.getById(data.policyId);
+        const history = await plotService.getNdviHistorico(policy.plotId);
+        setNdviHistory(history);
+      } catch {
+        setNdviHistory([]);
+      } finally {
+        setNdviLoading(false);
+      }
     } catch {
       setError('Não foi possível carregar o sinistro.');
     } finally {
@@ -81,21 +84,21 @@ export default function ClaimDetailScreen() {
         onPress: async () => {
           try {
             await claimService.delete(id);
+            showToast('Sinistro removido com sucesso.', 'success');
             router.back();
           } catch {
-            Alert.alert('Erro', 'Não foi possível remover o sinistro.');
+            showToast('Não foi possível remover o sinistro.', 'error');
           }
         },
       },
     ]);
   }
 
-  if (loading) return <LoadingState />;
+  if (loading) return <LoadingState variant="detail" />;
   if (error || !claim) return <ErrorState message={error} onRetry={load} />;
 
   const situationColor = CLAIM_SITUATION_COLOR[claim.claimSituationId] ?? colors.textMuted;
   const situationLabel = CLAIM_SITUATION[claim.claimSituationId] ?? 'Desconhecido';
-  const currentTimelineIdx = TIMELINE_IDS.indexOf(claim.claimSituationId);
 
   return (
     <>
@@ -113,40 +116,16 @@ export default function ClaimDetailScreen() {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Linha do Tempo</Text>
-          <View style={styles.timeline}>
-            {TIMELINE_IDS.map((stepId, idx) => {
-              const isActive = currentTimelineIdx >= idx;
-              const isRejected = claim.claimSituationId === 4 && idx === currentTimelineIdx;
-              return (
-                <View key={stepId} style={styles.timelineStep}>
-                  <View
-                    style={[
-                      styles.timelineDot,
-                      isActive && styles.timelineDotActive,
-                      isRejected && styles.timelineDotRejected,
-                    ]}
-                  />
-                  <Text style={[styles.timelineLabel, isActive && styles.timelineLabelActive]}>
-                    {CLAIM_SITUATION[stepId]}
-                  </Text>
-                  {idx < TIMELINE_IDS.length - 1 && (
-                    <View
-                      style={[
-                        styles.timelineLine,
-                        currentTimelineIdx > idx && styles.timelineLineActive,
-                      ]}
-                    />
-                  )}
-                </View>
-              );
-            })}
-          </View>
+          <ClaimTimeline situationId={claim.claimSituationId} />
         </View>
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Detalhes do Evento</Text>
           <InfoRow label="Categoria" value={CLAIM_CATEGORY[claim.categoryId] ?? `${claim.categoryId}`} />
-          <InfoRow label="Subcategoria" value={CLAIM_SUBCATEGORY[claim.subCategoryId] ?? `${claim.subCategoryId}`} />
+          <InfoRow
+            label="Subcategoria"
+            value={CLAIM_SUBCATEGORY[claim.subCategoryId] ?? `${claim.subCategoryId}`}
+          />
           {claim.description ? <InfoRow label="Descrição" value={claim.description} /> : null}
           {claim.totalAffectedAreaHa != null ? (
             <InfoRow label="Área afetada" value={`${claim.totalAffectedAreaHa} ha`} />
@@ -156,8 +135,7 @@ export default function ClaimDetailScreen() {
         {(claim.ndviBefore != null || claim.ndviAfter != null) && (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Análise Satelital NDVI</Text>
-            {claim.ndviBefore != null && <NdviBar label="Antes" value={claim.ndviBefore} />}
-            {claim.ndviAfter != null && <NdviBar label="Depois" value={claim.ndviAfter} />}
+            <NdviGauge before={claim.ndviBefore ?? null} after={claim.ndviAfter ?? null} />
             {claim.totalLossPct != null && (
               <View style={styles.lossRow}>
                 <Text style={styles.lossLabel}>Perda estimada</Text>
@@ -167,11 +145,17 @@ export default function ClaimDetailScreen() {
             {claim.mlConfidenceScore != null && (
               <Text style={styles.confidence}>
                 Confiança IA: {(claim.mlConfidenceScore * 100).toFixed(0)}%
-                {claim.fraudFlag ? ' ⚠️ Alerta de fraude' : ''}
+                {claim.fraudFlag ? ' · Alerta de fraude' : ''}
               </Text>
             )}
           </View>
         )}
+
+        <NdviHistoryChart
+          data={ndviHistory}
+          loading={ndviLoading}
+          emptyMessage="Histórico NDVI ainda não disponível para este talhão."
+        />
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Indenização</Text>
@@ -240,30 +224,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       ...shadow.sm,
     },
     sectionTitle: { ...typography.title, color: c.text },
-    timeline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    timelineStep: { alignItems: 'center', flex: 1, position: 'relative' },
-    timelineDot: {
-      width: 14,
-      height: 14,
-      borderRadius: 7,
-      backgroundColor: c.border,
-      borderWidth: 2,
-      borderColor: c.border,
-    },
-    timelineDotActive: { backgroundColor: c.primary, borderColor: c.primary },
-    timelineDotRejected: { backgroundColor: c.danger, borderColor: c.danger },
-    timelineLabel: { fontSize: 10, color: c.textMuted, textAlign: 'center', marginTop: 4 },
-    timelineLabelActive: { color: c.primary, fontWeight: '600' },
-    timelineLine: {
-      position: 'absolute',
-      top: 7,
-      left: '50%',
-      right: '-50%',
-      height: 2,
-      backgroundColor: c.border,
-      zIndex: -1,
-    },
-    timelineLineActive: { backgroundColor: c.primary },
     infoRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -273,17 +233,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     },
     infoLabel: { ...typography.caption, color: c.textMuted },
     infoValue: { ...typography.body, color: c.text, fontSize: 14, flexShrink: 1, textAlign: 'right' },
-    ndviRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    ndviLabel: { width: 50, ...typography.caption },
-    ndviTrack: {
-      flex: 1,
-      height: 10,
-      borderRadius: 5,
-      backgroundColor: c.border,
-      overflow: 'hidden',
-    },
-    ndviFill: { height: '100%', backgroundColor: c.primary, borderRadius: 5 },
-    ndviValue: { width: 40, ...typography.caption, textAlign: 'right' },
     lossRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',

@@ -25,6 +25,14 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       await storage.deleteItem(TOKEN_KEY);
     }
+
+    // Facilita diagnóstico de CORS/rede no Expo Web (browser bloqueia antes de chegar resposta HTTP).
+    if (!err.response && err.message === 'Network Error') {
+      err.message =
+        'Network Error — verifique se o gateway (:8080) está rodando e se EXPO_PUBLIC_API_URL está correto. ' +
+        'No celular físico use o IP da máquina, não localhost. Em Expo Web, reinicie o gateway após mudanças de CORS.';
+    }
+
     return Promise.reject(err);
   },
 );

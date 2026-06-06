@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack } from 'expo-router';
@@ -7,6 +7,7 @@ import { Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
+import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { Payment, paymentService, PAYMENT_SITUATION, PAYMENT_SITUATION_COLOR } from '@/services/paymentService';
@@ -54,7 +55,15 @@ export default function PaymentsScreen() {
         data={payments}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, payments.length === 0 && styles.listEmpty]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={colors.primary} />}
+        refreshControl={
+          <ZenithRefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              load();
+            }}
+          />
+        }
         ListHeaderComponent={
           payments.length > 0 ? (
             <View style={styles.summaryCard}>

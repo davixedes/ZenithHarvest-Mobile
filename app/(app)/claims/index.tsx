@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack } from 'expo-router';
@@ -7,6 +7,10 @@ import { router, Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
+import { NdviHealthStrip } from '@/components/NdviHealthStrip';
+import { SwipeDeleteRow } from '@/components/SwipeDeleteRow';
+import { useToast } from '@/components/Toast';
+import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { Claim, CLAIM_CATEGORY, CLAIM_SITUATION, CLAIM_SITUATION_COLOR, claimService } from '@/services/claimService';
@@ -14,6 +18,7 @@ import { Claim, CLAIM_CATEGORY, CLAIM_SITUATION, CLAIM_SITUATION_COLOR, claimSer
 export default function ClaimsScreen() {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { showToast } = useToast();
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -41,7 +46,29 @@ export default function ClaimsScreen() {
     load();
   }, [load]);
 
-  if (loading) return <LoadingState />;
+  const confirmDelete = useCallback(
+    (claim: Claim) => {
+      Alert.alert('Remover sinistro', `Deseja remover ${claim.claimNumber}?`, [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await claimService.delete(claim.id);
+              setClaims((prev) => prev.filter((c) => c.id !== claim.id));
+              showToast('Sinistro removido com sucesso.', 'success');
+            } catch {
+              showToast('Não foi possível remover o sinistro.', 'error');
+            }
+          },
+        },
+      ]);
+    },
+    [showToast]
+  );
+
+  if (loading) return <LoadingState variant="list" />;
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   return (
@@ -66,39 +93,38 @@ export default function ClaimsScreen() {
         data={claims}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, claims.length === 0 && styles.listEmpty]}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
+        refreshControl={<ZenithRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={<EmptyState message="Nenhum sinistro registrado." ionicon="document-text-outline" />}
         renderItem={({ item }) => {
           const color = CLAIM_SITUATION_COLOR[item.claimSituationId] ?? colors.textMuted;
           const label = CLAIM_SITUATION[item.claimSituationId] ?? 'Desconhecido';
           const category = CLAIM_CATEGORY[item.categoryId] ?? `Cat. ${item.categoryId}`;
+          const canDelete = item.claimSituationId === 1;
+
           return (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => router.push(`/(app)/claims/${item.id}`)}
-              accessibilityLabel={`Sinistro ${item.claimNumber}`}
-            >
-              <View style={[styles.statusAccent, { backgroundColor: color }]} />
-              <View style={styles.cardBody}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>{item.claimNumber}</Text>
-                  <View style={[styles.badge, { backgroundColor: color + '18' }]}>
-                    <Text style={[styles.badgeText, { color }]}>{label}</Text>
+            <SwipeDeleteRow enabled={canDelete} onDelete={() => confirmDelete(item)}>
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() => router.push(`/(app)/claims/${item.id}`)}
+                accessibilityLabel={`Sinistro ${item.claimNumber}`}
+              >
+                <View style={[styles.statusAccent, { backgroundColor: color }]} />
+                <View style={styles.cardBody}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>{item.claimNumber}</Text>
+                    <View style={[styles.badge, { backgroundColor: color + '18' }]}>
+                      <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                    </View>
                   </View>
+                  <Text style={styles.cardSub}>{category}</Text>
+                  <NdviHealthStrip value={item.ndviAfter ?? item.ndviBefore ?? null} />
+                  <Text style={styles.cardDate}>
+                    {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+                  </Text>
                 </View>
-                <Text style={styles.cardSub}>{category}</Text>
-                <Text style={styles.cardDate}>
-                  {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
-            </TouchableOpacity>
+                <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
+              </TouchableOpacity>
+            </SwipeDeleteRow>
           );
         }}
       />
