@@ -63,11 +63,11 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
-        <Text style={styles.name}>{user?.name ?? '—'}</Text>
+        <Text style={styles.name}>{user ? `${user.name} ${user.lastName}` : '—'}</Text>
         <Text style={styles.email}>{user?.email ?? '—'}</Text>
 
         <View style={styles.card}>
-          <InfoRow label="Nome" value={user?.name ?? '—'} />
+          <InfoRow label="Nome" value={user ? `${user.name} ${user.lastName}` : '—'} />
           <InfoRow label="E-mail" value={user?.email ?? '—'} />
           <InfoRow label="ID" value={user?.id ?? '—'} />
         </View>
