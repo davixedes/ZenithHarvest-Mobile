@@ -1,11 +1,10 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
 
 import * as SecureStore from 'expo-secure-store';
 
 const THEME_KEY = 'app_theme_preference';
 
-type ThemeMode = 'light' | 'dark' | 'system';
+type ThemeMode = 'light' | 'dark';
 
 interface ThemeContextValue {
   isDark: boolean;
@@ -29,13 +28,12 @@ async function persistTheme(mode: ThemeMode) {
 
 const ThemeContext = createContext<ThemeContextValue>({
   isDark: false,
-  mode: 'system',
+  mode: 'light',
   toggleTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const systemScheme = useColorScheme();
-  const [mode, setMode] = useState<ThemeMode>('system');
+  const [mode, setMode] = useState<ThemeMode>('light');
 
   useEffect(() => {
     loadSavedTheme().then((saved) => {
@@ -43,7 +41,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const isDark = mode === 'system' ? systemScheme === 'dark' : mode === 'dark';
+  const isDark = mode === 'dark';
 
   const toggleTheme = useCallback(() => {
     setMode((prev) => {
