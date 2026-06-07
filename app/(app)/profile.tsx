@@ -66,12 +66,6 @@ export default function ProfileScreen() {
         <Text style={styles.name}>{user?.name ?? '—'}</Text>
         <Text style={styles.email}>{user?.email ?? '—'}</Text>
 
-        <View style={styles.card}>
-          <InfoRow label="Nome" value={user?.name ?? '—'} />
-          <InfoRow label="E-mail" value={user?.email ?? '—'} />
-          <InfoRow label="ID" value={user?.id ?? '—'} />
-        </View>
-
         <View style={styles.aboutBtn}>
           <Ionicons name={isDark ? 'moon' : 'sunny-outline'} size={20} color={colors.textSecondary} />
           <Text style={styles.aboutBtnText}>Modo escuro</Text>
@@ -135,16 +129,6 @@ export default function ProfileScreen() {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
-  const colors = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
-    </View>
-  );
-}
 
 function makeStyles(c: ReturnType<typeof useColors>) {
   return StyleSheet.create({
@@ -168,23 +152,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     avatarText: { fontSize: 38, color: c.textOnPrimary, fontFamily: fonts.extraBold },
     name: { ...typography.heading, color: c.text },
     email: { ...typography.body, color: c.textMuted },
-    card: {
-      width: '100%',
-      backgroundColor: c.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      gap: spacing.sm,
-      ...shadow.sm,
-    },
-    infoRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingVertical: spacing.sm,
-      borderBottomWidth: 1,
-      borderBottomColor: c.borderLight,
-    },
-    infoLabel: { ...typography.caption, color: c.textMuted },
-    infoValue: { ...typography.body, color: c.text, fontSize: 14 },
     aboutBtn: {
       width: '100%',
       flexDirection: 'row',
