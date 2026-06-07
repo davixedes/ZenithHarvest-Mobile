@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack } from 'expo-router';
@@ -8,7 +16,6 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { useToast } from '@/components/Toast';
-import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { Farm, farmService } from '@/services/farmService';
@@ -25,8 +32,7 @@ export default function FarmsScreen() {
   const load = useCallback(async () => {
     try {
       setError('');
-      const data = await farmService.list();
-      setFarms(data);
+      setFarms(await farmService.list());
     } catch {
       setError('Não foi possível carregar as fazendas.');
     } finally {
@@ -36,8 +42,6 @@ export default function FarmsScreen() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
-
-  const onRefresh = useCallback(() => { setRefreshing(true); load(); }, [load]);
 
   const confirmDelete = useCallback(
     (farm: Farm) => {
@@ -85,13 +89,19 @@ export default function FarmsScreen() {
           ),
         }}
       />
-      <FlatList
+      <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
-        data={farms}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.list, farms.length === 0 && styles.listEmpty]}
-        refreshControl={<ZenithRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={
+        contentContainerStyle={farms.length === 0 ? styles.empty : styles.list}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => { setRefreshing(true); load(); }}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
+        {farms.length === 0 ? (
           <EmptyState
             ionicon="leaf-outline"
             title="Nenhuma fazenda cadastrada"
@@ -99,34 +109,35 @@ export default function FarmsScreen() {
             actionLabel="Cadastrar fazenda"
             onAction={() => router.push('/(app)/farms/new')}
           />
-        }
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => router.push(`/(app)/farms/${item.id}`)}
-              accessibilityLabel={`Fazenda ${item.name}`}
-            >
-              <View style={styles.cardIcon}>
-                <Ionicons name="leaf" size={20} color={colors.primary} />
-              </View>
-              <View style={styles.cardBody}>
-                <Text style={styles.cardTitle}>{item.name}</Text>
-                <Text style={styles.cardSub}>{item.totalAreaHectares} ha · {item.state}</Text>
-                <Text style={styles.cardSub}>CAR: {item.carRegistration}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => confirmDelete(item)}
-              style={styles.deleteBtn}
-              accessibilityLabel={`Remover fazenda ${item.name}`}
-            >
-              <Ionicons name="trash-outline" size={18} color={colors.danger} />
-            </TouchableOpacity>
-          </View>
+        ) : (
+          farms.map((farm) => (
+            <View key={farm.id} style={styles.row}>
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() => router.push(`/(app)/farms/${farm.id}`)}
+                accessibilityLabel={`Fazenda ${farm.name}`}
+              >
+                <View style={styles.cardIcon}>
+                  <Ionicons name="leaf" size={20} color={colors.primary} />
+                </View>
+                <View style={styles.cardBody}>
+                  <Text style={styles.cardTitle}>{farm.name}</Text>
+                  <Text style={styles.cardSub}>{farm.totalAreaHectares} ha · {farm.state}</Text>
+                  <Text style={styles.cardSub}>CAR: {farm.carRegistration}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => confirmDelete(farm)}
+                style={styles.deleteBtn}
+                accessibilityLabel={`Remover fazenda ${farm.name}`}
+              >
+                <Ionicons name="trash-outline" size={18} color={colors.danger} />
+              </TouchableOpacity>
+            </View>
+          ))
         )}
-      />
+      </ScrollView>
     </>
   );
 }
@@ -134,7 +145,7 @@ export default function FarmsScreen() {
 function makeStyles(c: ReturnType<typeof useColors>) {
   return StyleSheet.create({
     list: { padding: spacing.md, paddingBottom: spacing.lg },
-    listEmpty: { flexGrow: 1 },
+    empty: { flexGrow: 1 },
     row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
     card: {
       flex: 1,

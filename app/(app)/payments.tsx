@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack } from 'expo-router';
@@ -7,7 +13,6 @@ import { Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { Payment, paymentService, PAYMENT_SITUATION, PAYMENT_SITUATION_COLOR } from '@/services/paymentService';
@@ -45,88 +50,96 @@ export default function PaymentsScreen() {
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={load} />;
 
-  const total = payments.filter((p) => p.paymentSituationId === 3).reduce((s, p) => s + p.amount, 0);
+  const paidTotal = payments
+    .filter((p) => p.paymentSituationId === 3)
+    .reduce((s, p) => s + p.amount, 0);
 
   return (
     <>
       <Stack.Screen options={{ title: 'Pagamentos', headerShown: true }} />
-      <FlatList
+      <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
-        data={payments}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.list, payments.length === 0 && styles.listEmpty]}
+        contentContainerStyle={payments.length === 0 ? styles.empty : styles.list}
         refreshControl={
-          <ZenithRefreshControl
+          <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              load();
-            }}
+            onRefresh={() => { setRefreshing(true); load(); }}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         }
-        ListHeaderComponent={
-          payments.length > 0 ? (
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>Total recebido</Text>
-              <Text style={styles.summaryValue}>{formatCurrency(total)}</Text>
-              <View style={styles.summaryRow}>
-                <Ionicons name="checkmark-circle" size={14} color="rgba(255,255,255,0.8)" />
-                <Text style={styles.summaryNote}>{payments.filter((p) => p.paymentSituationId === 3).length} pagamentos concluídos</Text>
-              </View>
-            </View>
-          ) : null
-        }
-        ListEmptyComponent={
+      >
+        {payments.length === 0 ? (
           <EmptyState
             ionicon="card-outline"
             title="Nenhum pagamento ainda"
             message="Os pagamentos aparecem aqui após a aprovação e processamento de sinistros pela seguradora."
           />
-        }
-        renderItem={({ item }) => {
-          const color = PAYMENT_SITUATION_COLOR[item.paymentSituationId] ?? colors.textMuted;
-          const label = PAYMENT_SITUATION[item.paymentSituationId] ?? '—';
-          return (
-            <View style={styles.card}>
-              <View style={[styles.statusDot, { backgroundColor: color }]} />
-              <View style={styles.cardBody}>
-                <View style={styles.cardRow}>
-                  <Text style={styles.amount}>{formatCurrency(item.amount)}</Text>
-                  <View style={[styles.badge, { backgroundColor: color + '18' }]}>
-                    <Text style={[styles.badgeText, { color }]}>{label}</Text>
-                  </View>
-                </View>
-                <Text style={styles.date}>
-                  {item.paymentDate ? `Pago em ${formatDate(item.paymentDate)}` : `Criado em ${formatDate(item.createdAt)}`}
+        ) : (
+          <>
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>Total recebido</Text>
+              <Text style={styles.summaryValue}>{formatCurrency(paidTotal)}</Text>
+              <View style={styles.summaryRow}>
+                <Ionicons name="checkmark-circle" size={14} color="rgba(255,255,255,0.8)" />
+                <Text style={styles.summaryNote}>
+                  {payments.filter((p) => p.paymentSituationId === 3).length} pagamentos concluídos
                 </Text>
-                {item.pixKey ? (
-                  <View style={styles.pixRow}>
-                    <Ionicons name="flash" size={12} color={colors.textLight} />
-                    <Text style={styles.pixKey}>{item.pixKey}</Text>
-                  </View>
-                ) : null}
               </View>
             </View>
-          );
-        }}
-      />
+
+            {payments.map((item) => {
+              const color = PAYMENT_SITUATION_COLOR[item.paymentSituationId] ?? colors.textMuted;
+              const label = PAYMENT_SITUATION[item.paymentSituationId] ?? '—';
+              return (
+                <View key={item.id} style={styles.card}>
+                  <View style={[styles.statusDot, { backgroundColor: color }]} />
+                  <View style={styles.cardBody}>
+                    <View style={styles.cardRow}>
+                      <Text style={styles.amount}>{formatCurrency(item.amount)}</Text>
+                      <View style={[styles.badge, { backgroundColor: color + '18' }]}>
+                        <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.date}>
+                      {item.paymentDate
+                        ? `Pago em ${formatDate(item.paymentDate)}`
+                        : `Criado em ${formatDate(item.createdAt)}`}
+                    </Text>
+                    {item.pixKey ? (
+                      <View style={styles.pixRow}>
+                        <Ionicons name="flash" size={12} color={colors.textLight} />
+                        <Text style={styles.pixKey}>{item.pixKey}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
+              );
+            })}
+          </>
+        )}
+      </ScrollView>
     </>
   );
 }
 
 function makeStyles(c: ReturnType<typeof useColors>) {
   return StyleSheet.create({
-    list: { padding: spacing.md, paddingBottom: spacing.lg },
-    listEmpty: { flexGrow: 1 },
+    list: { padding: spacing.md, paddingBottom: spacing.lg, gap: spacing.sm },
+    empty: { flexGrow: 1 },
     summaryCard: {
       backgroundColor: c.primary,
       borderRadius: radius.lg,
       padding: spacing.lg,
-      marginBottom: spacing.md,
       gap: spacing.xs,
       ...shadow.md,
     },
-    summaryLabel: { ...typography.label, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: 0.5 },
+    summaryLabel: {
+      ...typography.label,
+      color: 'rgba(255,255,255,0.75)',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
     summaryValue: { fontSize: 32, fontWeight: '800', color: c.textOnPrimary, letterSpacing: -1 },
     summaryRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
     summaryNote: { ...typography.caption, color: 'rgba(255,255,255,0.75)' },

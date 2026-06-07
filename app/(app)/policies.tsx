@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack } from 'expo-router';
@@ -7,7 +13,6 @@ import { Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { Policy, POLICY_SITUATION, policyService } from '@/services/policyService';
@@ -55,68 +60,67 @@ export default function PoliciesScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Apólices', headerShown: true }} />
-      <FlatList
+      <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
-        data={policies}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.list, policies.length === 0 && styles.listEmpty]}
+        contentContainerStyle={policies.length === 0 ? styles.empty : styles.list}
         refreshControl={
-          <ZenithRefreshControl
+          <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              load();
-            }}
+            onRefresh={() => { setRefreshing(true); load(); }}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         }
-        ListEmptyComponent={
+      >
+        {policies.length === 0 ? (
           <EmptyState
             ionicon="shield-checkmark-outline"
             title="Nenhuma apólice vinculada"
             message="Suas apólices de seguro rural aparecem aqui quando vinculadas a um talhão cadastrado."
           />
-        }
-        renderItem={({ item }) => {
-          const color = POLICY_SITUATION_COLOR[item.policySituationId] ?? colors.textMuted;
-          const label = POLICY_SITUATION[item.policySituationId] ?? '—';
-          return (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <View style={styles.cardTitleRow}>
-                  <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
-                  <Text style={styles.policyNumber}>{item.policyNumber}</Text>
+        ) : (
+          policies.map((item) => {
+            const color = POLICY_SITUATION_COLOR[item.policySituationId] ?? colors.textMuted;
+            const label = POLICY_SITUATION[item.policySituationId] ?? '—';
+            return (
+              <View key={item.id} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <View style={styles.cardTitleRow}>
+                    <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
+                    <Text style={styles.policyNumber}>{item.policyNumber}</Text>
+                  </View>
+                  <View style={[styles.badge, { backgroundColor: color + '18' }]}>
+                    <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                  </View>
                 </View>
-                <View style={[styles.badge, { backgroundColor: color + '18' }]}>
-                  <Text style={[styles.badgeText, { color }]}>{label}</Text>
+                <View style={styles.divider} />
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Valor segurado</Text>
+                  <Text style={styles.infoValue}>{formatCurrency(item.insuredAmount)}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Prêmio total</Text>
+                  <Text style={styles.infoValue}>{formatCurrency(item.totalPremium)}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Vigência</Text>
+                  <Text style={styles.infoValue}>
+                    {`${formatDate(item.startDate)} — ${formatDate(item.endDate)}`}
+                  </Text>
                 </View>
               </View>
-              <View style={styles.divider} />
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Valor segurado</Text>
-                <Text style={styles.infoValue}>{formatCurrency(item.insuredAmount)}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Prêmio total</Text>
-                <Text style={styles.infoValue}>{formatCurrency(item.totalPremium)}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Vigência</Text>
-                <Text style={styles.infoValue}>
-                  {`${formatDate(item.startDate)} - ${formatDate(item.endDate)}`}
-                </Text>
-              </View>
-            </View>
-          );
-        }}
-      />
+            );
+          })
+        )}
+      </ScrollView>
     </>
   );
 }
 
 function makeStyles(c: ReturnType<typeof useColors>) {
   return StyleSheet.create({
-    list: { padding: spacing.md, paddingBottom: spacing.lg },
-    listEmpty: { flexGrow: 1 },
+    list: { padding: spacing.md, paddingBottom: spacing.lg, gap: spacing.sm },
+    empty: { flexGrow: 1 },
     card: {
       backgroundColor: c.surface,
       borderRadius: radius.md,
