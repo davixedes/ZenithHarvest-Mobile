@@ -57,13 +57,14 @@ export default function ProfileScreen() {
     <>
       <Stack.Screen options={{ title: 'Perfil', headerShown: true }} />
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user?.name?.charAt(0).toUpperCase() ?? '?'}
-          </Text>
-        </View>
-
         <View style={styles.card}>
+          <View style={styles.avatarWrap}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user?.name?.charAt(0).toUpperCase() ?? '?'}
+              </Text>
+            </View>
+          </View>
           <InfoRow icon="person-outline" label="Nome completo" value={user ? `${user.name} ${user.lastName}` : '—'} />
           <InfoRow icon="mail-outline" label="E-mail" value={user?.email ?? '—'} />
         </View>
@@ -150,9 +151,23 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     container: { flex: 1, backgroundColor: c.background },
     content: {
       padding: spacing.lg,
-      alignItems: 'center',
+      alignItems: 'stretch',
       gap: spacing.md,
       paddingBottom: spacing.xxl,
+    },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.xs,
+      ...shadow.sm,
+    },
+    avatarWrap: {
+      alignItems: 'center',
+      paddingVertical: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: c.borderLight,
+      marginBottom: spacing.xs,
     },
     avatar: {
       width: 88,
@@ -161,18 +176,9 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       backgroundColor: c.primary,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: spacing.xs,
       ...shadow.md,
     },
     avatarText: { fontSize: 38, color: c.textOnPrimary, fontFamily: fonts.extraBold },
-    card: {
-      width: '100%',
-      backgroundColor: c.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      gap: spacing.xs,
-      ...shadow.sm,
-    },
     infoRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -185,7 +191,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     infoLabel: { ...typography.caption, color: c.textMuted },
     infoValue: { ...typography.body, color: c.text, fontSize: 14, maxWidth: '55%', textAlign: 'right' },
     aboutBtn: {
-      width: '100%',
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.sm,
@@ -196,7 +201,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     },
     aboutBtnText: { color: c.textSecondary, fontFamily: fonts.semiBold, fontSize: 15, flex: 1 },
     logoutBtn: {
-      width: '100%',
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
