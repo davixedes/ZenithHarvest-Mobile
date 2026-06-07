@@ -63,9 +63,6 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
-        <Text style={styles.name}>{user ? `${user.name} ${user.lastName}` : '—'}</Text>
-        <Text style={styles.email}>{user?.email ?? '—'}</Text>
-
         <View style={styles.card}>
           <InfoRow icon="person-outline" label="Nome completo" value={user ? `${user.name} ${user.lastName}` : '—'} />
           <InfoRow icon="mail-outline" label="E-mail" value={user?.email ?? '—'} />
@@ -168,8 +165,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       ...shadow.md,
     },
     avatarText: { fontSize: 38, color: c.textOnPrimary, fontFamily: fonts.extraBold },
-    name: { ...typography.heading, color: c.text },
-    email: { ...typography.body, color: c.textMuted },
     card: {
       width: '100%',
       backgroundColor: c.surface,
