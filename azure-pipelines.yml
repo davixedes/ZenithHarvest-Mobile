@@ -14,8 +14,7 @@
 #    KEY_ALIAS                    - alias da chave dentro do keystore (ex: zenith-key)
 #    KEY_PASSWORD                 - senha da chave
 #    FIREBASE_APP_ID              - App ID do Firebase Android (ex: 1:123456:android:abc123)
-#    FIREBASE_SERVICE_ACCOUNT_B64 - service account JSON do Firebase em base64
-#                                   (gerar: base64 -i serviceAccount.json | tr -d '\n')
+#    FIREBASE_CI_TOKEN            - token gerado por: npx firebase-tools login:ci
 #    DD_API_KEY                   - Datadog API key (Account > API Keys)
 #
 #  Como gerar o keystore de release (rodar uma vez localmente):
@@ -216,19 +215,17 @@ stages:
                   versionSpec: '$(nodeVersion)'
 
               - script: |
-                  echo "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d > /tmp/firebase-sa.json
-                  export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-sa.json
-
                   APK=$(find "$(Pipeline.Workspace)/zenith-harvest-android/apk" -name "*.apk" | head -1)
                   echo "Distribuindo APK: $APK"
 
                   npx firebase-tools appdistribution:distribute "$APK" \
                     --app "$(FIREBASE_APP_ID)" \
                     --release-notes "Build #$(Build.BuildId) — $(Build.SourceVersionMessage)" \
-                    --groups "internal-testers"
+                    --groups "internal-testers" \
+                    --token "$FIREBASE_CI_TOKEN"
                 displayName: 'Upload para Firebase App Distribution'
                 env:
-                  FIREBASE_SERVICE_ACCOUNT_B64: $(FIREBASE_SERVICE_ACCOUNT_B64)
+                  FIREBASE_CI_TOKEN: $(FIREBASE_CI_TOKEN)
                   FIREBASE_APP_ID: $(FIREBASE_APP_ID)
 
     # ── 3. Datadog source maps ────────────────────────────────────────────────
