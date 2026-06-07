@@ -8,7 +8,6 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { NdviHealthStrip } from '@/components/NdviHealthStrip';
-import { ScreenContainer } from '@/components/ScreenContainer';
 import { useToast } from '@/components/Toast';
 import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
@@ -37,14 +36,9 @@ export default function ClaimsScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    load();
-  }, [load]);
+  const onRefresh = useCallback(() => { setRefreshing(true); load(); }, [load]);
 
   const confirmDelete = useCallback(
     (claim: Claim) => {
@@ -72,7 +66,7 @@ export default function ClaimsScreen() {
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   return (
-    <ScreenContainer>
+    <>
       <Stack.Screen
         options={{
           title: 'Sinistros',
@@ -89,7 +83,7 @@ export default function ClaimsScreen() {
         }}
       />
       <FlatList
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: colors.background }}
         data={claims}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, claims.length === 0 && styles.listEmpty]}
@@ -145,7 +139,7 @@ export default function ClaimsScreen() {
           );
         }}
       />
-    </ScreenContainer>
+    </>
   );
 }
 

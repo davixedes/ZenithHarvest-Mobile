@@ -7,7 +7,6 @@ import { Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { ScreenContainer } from '@/components/ScreenContainer';
 import { ZenithRefreshControl } from '@/components/ZenithRefreshControl';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -54,10 +53,10 @@ export default function PoliciesScreen() {
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   return (
-    <ScreenContainer>
+    <>
       <Stack.Screen options={{ title: 'Apólices', headerShown: true }} />
       <FlatList
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: colors.background }}
         data={policies}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, policies.length === 0 && styles.listEmpty]}
@@ -110,7 +109,7 @@ export default function PoliciesScreen() {
           );
         }}
       />
-    </ScreenContainer>
+    </>
   );
 }
 
