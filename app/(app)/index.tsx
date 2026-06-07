@@ -424,9 +424,9 @@ function makeStyles(c: Colors) {
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: spacing.lg,
+      paddingHorizontal: spacing.md,
       paddingTop: spacing.xl,
-      paddingBottom: spacing.md,
+      paddingBottom: spacing.xl,
       gap: spacing.md,
     },
     headerText: { flex: 1 },
