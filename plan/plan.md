@@ -166,7 +166,7 @@ Ao abrir um sinistro, o produtor pode anexar fotos da lavoura afetada. As imagen
 
 ---
 
-### 4. Notificações Push
+### 4. Notificações Push ✅
 
 **Prioridade:** Média  
 **Esforço:** Médio  
