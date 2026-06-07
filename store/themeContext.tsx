@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 
 import * as SecureStore from 'expo-secure-store';
 
@@ -10,14 +10,6 @@ interface ThemeContextValue {
   isDark: boolean;
   mode: ThemeMode;
   toggleTheme: () => void;
-}
-
-async function loadSavedTheme(): Promise<ThemeMode | null> {
-  try {
-    const saved = await SecureStore.getItemAsync(THEME_KEY);
-    if (saved === 'light' || saved === 'dark') return saved;
-  } catch {}
-  return null;
 }
 
 async function persistTheme(mode: ThemeMode) {
@@ -32,16 +24,13 @@ const ThemeContext = createContext<ThemeContextValue>({
   toggleTheme: () => {},
 });
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>('light');
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  initialMode?: ThemeMode;
+}
 
-  useEffect(() => {
-    loadSavedTheme().then((saved) => {
-      if (saved) setMode(saved);
-    });
-  }, []);
-
-  const isDark = mode === 'dark';
+export function ThemeProvider({ children, initialMode = 'light' }: ThemeProviderProps) {
+  const [mode, setMode] = useState<ThemeMode>(initialMode);
 
   const toggleTheme = useCallback(() => {
     setMode((prev) => {
@@ -52,7 +41,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ isDark, mode, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDark: mode === 'dark', mode, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

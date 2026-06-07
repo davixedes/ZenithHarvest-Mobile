@@ -9,9 +9,10 @@ import {
   useFonts,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { Stack } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -42,18 +43,26 @@ export default function RootLayout() {
     PlusJakartaSans_800ExtraBold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
+  const [initialTheme, setInitialTheme] = useState<'light' | 'dark' | null>(null);
 
-  if (!fontsLoaded && !fontError) return null;
+  useEffect(() => {
+    SecureStore.getItemAsync('app_theme_preference').then((saved) => {
+      setInitialTheme(saved === 'dark' ? 'dark' : 'light');
+    }).catch(() => setInitialTheme('light'));
+  }, []);
+
+  const ready = (fontsLoaded || !!fontError) && initialTheme !== null;
+
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
+
+  if (!ready) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1, height: Platform.OS === 'web' ? '100vh' : undefined }}>
       <SafeAreaProvider>
-        <ThemeProvider>
+        <ThemeProvider initialMode={initialTheme}>
           <AuthProvider>
             <ToastProvider>
               <AppContent />
