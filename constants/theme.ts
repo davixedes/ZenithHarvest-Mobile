@@ -72,17 +72,26 @@ export const gradients = {
   primaryDark: ['#1BD60B', '#A2FF00'] as [string, string],
 };
 
+// ── Fonts ─────────────────────────────────────────────────────────────────────
+export const fonts = {
+  regular: 'PlusJakartaSans_400Regular',
+  medium: 'PlusJakartaSans_500Medium',
+  semiBold: 'PlusJakartaSans_600SemiBold',
+  bold: 'PlusJakartaSans_700Bold',
+  extraBold: 'PlusJakartaSans_800ExtraBold',
+};
+
 // ── Typography ────────────────────────────────────────────────────────────────
 export const typography = {
-  display: { fontSize: 30, fontWeight: '800' as const, letterSpacing: -0.5 },
-  heading: { fontSize: 22, fontWeight: '700' as const, letterSpacing: -0.3 },
-  title: { fontSize: 18, fontWeight: '600' as const },
-  body: { fontSize: 15, fontWeight: '400' as const, lineHeight: 22 },
-  bodyBold: { fontSize: 15, fontWeight: '600' as const },
-  label: { fontSize: 13, fontWeight: '500' as const, letterSpacing: 0.1 },
-  caption: { fontSize: 12, fontWeight: '400' as const },
-  micro: { fontSize: 11, fontWeight: '600' as const, letterSpacing: 0.4 },
-  subheading: { fontSize: 18, fontWeight: '600' as const },
+  display: { fontSize: 30, fontFamily: fonts.extraBold, letterSpacing: -0.5 },
+  heading: { fontSize: 22, fontFamily: fonts.bold, letterSpacing: -0.3 },
+  title: { fontSize: 18, fontFamily: fonts.semiBold },
+  body: { fontSize: 15, fontFamily: fonts.regular, lineHeight: 22 },
+  bodyBold: { fontSize: 15, fontFamily: fonts.semiBold },
+  label: { fontSize: 13, fontFamily: fonts.medium, letterSpacing: 0.1 },
+  caption: { fontSize: 12, fontFamily: fonts.regular },
+  micro: { fontSize: 11, fontFamily: fonts.semiBold, letterSpacing: 0.4 },
+  subheading: { fontSize: 18, fontFamily: fonts.semiBold },
 };
 
 // ── Spacing ───────────────────────────────────────────────────────────────────

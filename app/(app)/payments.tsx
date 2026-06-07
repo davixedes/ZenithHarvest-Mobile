@@ -13,7 +13,7 @@ import { Stack } from 'expo-router';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
-import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { Payment, paymentService, PAYMENT_SITUATION, PAYMENT_SITUATION_COLOR } from '@/services/paymentService';
 
@@ -140,7 +140,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       textTransform: 'uppercase',
       letterSpacing: 0.5,
     },
-    summaryValue: { fontSize: 32, fontWeight: '800', color: c.textOnPrimary, letterSpacing: -1 },
+    summaryValue: { fontSize: 32, fontFamily: fonts.extraBold, color: c.textOnPrimary, letterSpacing: -1 },
     summaryRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
     summaryNote: { ...typography.caption, color: 'rgba(255,255,255,0.75)' },
     card: {
@@ -155,7 +155,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     statusDot: { width: 8, height: 8, borderRadius: 4, alignSelf: 'flex-start', marginTop: 6 },
     cardBody: { flex: 1, gap: 4 },
     cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    amount: { fontSize: 18, fontWeight: '700', color: c.text },
+    amount: { fontSize: 18, fontFamily: fonts.bold, color: c.text },
     date: { ...typography.caption, color: c.textMuted },
     pixRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     pixKey: { ...typography.caption, color: c.textLight },

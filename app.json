@@ -48,7 +48,9 @@
           "photosPermission": "Allow Zenith Harvest to access your photos.",
           "cameraPermission": "Allow Zenith Harvest to use your camera."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-splash-screen"
     ]
   }
 }

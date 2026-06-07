@@ -21,7 +21,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { NdviHistoryChart } from '@/components/NdviHistoryChart';
 import { useToast } from '@/components/Toast';
-import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { Crop, cropService } from '@/services/cropService';
 import { Farm, farmService } from '@/services/farmService';
@@ -228,7 +228,7 @@ export default function FarmDetailScreen() {
               style={{ marginRight: spacing.sm }}
               accessibilityLabel={editing ? 'Cancelar edição' : 'Editar fazenda'}
             >
-              <Text style={{ color: colors.text, fontWeight: '600' }}>
+              <Text style={{ color: colors.text, fontFamily: fonts.semiBold }}>
                 {editing ? 'Cancelar' : 'Editar'}
               </Text>
             </TouchableOpacity>
@@ -497,7 +497,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       backgroundColor: c.primaryLight,
       borderRadius: radius.full,
     },
-    addPlotBtnText: { color: c.primary, fontWeight: '600', fontSize: 13 },
+    addPlotBtnText: { color: c.primary, fontFamily: fonts.semiBold, fontSize: 13 },
     field: { gap: spacing.xs },
     label: { ...typography.label, color: c.textSecondary },
     input: {
@@ -516,7 +516,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       alignItems: 'center',
     },
     buttonDisabled: { opacity: 0.6 },
-    buttonText: { color: c.textOnPrimary, fontWeight: '700', fontSize: 16 },
+    buttonText: { color: c.textOnPrimary, fontFamily: fonts.bold, fontSize: 16 },
     infoRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -561,7 +561,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       borderWidth: 1.5,
       borderColor: c.primary,
     },
-    newClaimText: { color: c.primary, fontWeight: '700', fontSize: 15 },
+    newClaimText: { color: c.primary, fontFamily: fonts.bold, fontSize: 15 },
     modalOverlay: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.4)',
@@ -585,7 +585,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       borderWidth: 1.5,
       borderColor: c.border,
     },
-    modalCancelText: { color: c.textMuted, fontWeight: '600' },
+    modalCancelText: { color: c.textMuted, fontFamily: fonts.semiBold },
     cropRow: { flexDirection: 'row', gap: spacing.xs, paddingBottom: spacing.xs },
     cropChip: {
       paddingHorizontal: spacing.sm,
@@ -596,8 +596,8 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       backgroundColor: c.background,
     },
     cropChipSelected: { borderColor: c.primary, backgroundColor: c.primaryLight },
-    cropChipText: { fontSize: 13, color: c.textMuted, fontWeight: '500' },
-    cropChipTextSelected: { color: c.primary, fontWeight: '700' },
+    cropChipText: { fontSize: 13, color: c.textMuted, fontFamily: fonts.medium },
+    cropChipTextSelected: { color: c.primary, fontFamily: fonts.bold },
     modalConfirm: {
       flex: 1,
       padding: spacing.md,
@@ -605,6 +605,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       alignItems: 'center',
       backgroundColor: c.primary,
     },
-    modalConfirmText: { color: c.textOnPrimary, fontWeight: '700' },
+    modalConfirmText: { color: c.textOnPrimary, fontFamily: fonts.bold },
   });
 }

@@ -3,7 +3,7 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { radius, spacing, typography } from '@/constants/theme';
+import { fonts, radius, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { CLAIM_SITUATION } from '@/services/claimService';
 
@@ -92,7 +92,7 @@ export function ClaimTimeline({ situationId }: ClaimTimelineProps) {
               <Text
                 style={[
                   styles.label,
-                  (isCompleted || isCurrent || isRejectedStep) && { color: colors.text, fontWeight: '600' },
+                  (isCompleted || isCurrent || isRejectedStep) && { color: colors.text, fontFamily: fonts.semiBold },
                 ]}
               >
                 {isRejectedStep ? 'Reprovado' : CLAIM_SITUATION[stepId]}

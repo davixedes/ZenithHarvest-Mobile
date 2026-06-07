@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { radius, spacing, typography } from '@/constants/theme';
+import { fonts, radius, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   btnText: {
-    fontWeight: '700',
+    fontFamily: fonts.bold,
     fontSize: 14,
   },
 });

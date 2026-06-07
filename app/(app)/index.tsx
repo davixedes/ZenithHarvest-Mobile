@@ -12,7 +12,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack } from 'expo-router';
 
-import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import {
   Claim,
@@ -362,7 +362,7 @@ const actionBtnStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  label: { fontSize: 11, fontWeight: '700', textAlign: 'center' },
+  label: { fontSize: 11, fontFamily: fonts.bold, textAlign: 'center' },
 });
 
 function StatCard({
@@ -444,7 +444,7 @@ function makeStyles(c: Colors) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    avatarInitial: { fontSize: 18, fontWeight: '800' },
+    avatarInitial: { fontSize: 18, fontFamily: fonts.extraBold },
 
     section: { paddingHorizontal: spacing.md, marginBottom: spacing.lg },
     sectionRow: {
@@ -454,7 +454,7 @@ function makeStyles(c: Colors) {
       marginBottom: spacing.sm,
     },
     sectionTitle: { ...typography.title, color: c.text, marginBottom: spacing.sm },
-    seeAll: { ...typography.label, fontWeight: '700' },
+    seeAll: { ...typography.label, fontFamily: fonts.bold },
 
     actionsRow: { flexDirection: 'row', gap: spacing.sm },
 
@@ -472,7 +472,7 @@ function makeStyles(c: Colors) {
       gap: spacing.xs,
       ...shadow.sm,
     },
-    statValue: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+    statValue: { fontSize: 24, fontFamily: fonts.extraBold, letterSpacing: -0.5 },
     statLabel: { ...typography.micro, textAlign: 'center' },
 
     loader: { marginVertical: spacing.lg },
@@ -496,7 +496,7 @@ function makeStyles(c: Colors) {
       borderRadius: radius.full,
       marginTop: spacing.xs,
     },
-    emptyBtnText: { fontWeight: '700', fontSize: 14 },
+    emptyBtnText: { fontFamily: fonts.bold, fontSize: 14 },
 
     listCard: {
       flexDirection: 'row',

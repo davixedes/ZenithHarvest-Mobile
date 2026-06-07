@@ -22,7 +22,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { useToast } from '@/components/Toast';
-import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import {
   CLAIM_CATEGORY,
@@ -333,7 +333,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     },
     optionSelected: { backgroundColor: c.primary, borderColor: c.primary },
     optionText: { fontSize: 14, color: c.textSecondary },
-    optionTextSelected: { color: c.textOnPrimary, fontWeight: '700' },
+    optionTextSelected: { color: c.textOnPrimary, fontFamily: fonts.bold },
     photoBtn: {
       borderWidth: 2,
       borderStyle: 'dashed',
@@ -358,6 +358,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       ...shadow.sm,
     },
     submitBtnDisabled: { opacity: 0.6 },
-    submitBtnText: { color: c.textOnPrimary, fontWeight: '700', fontSize: 16 },
+    submitBtnText: { color: c.textOnPrimary, fontFamily: fonts.bold, fontSize: 16 },
   });
 }

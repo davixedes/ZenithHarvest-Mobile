@@ -3,7 +3,7 @@ import { Redirect, Tabs } from 'expo-router';
 
 import { LoadingState } from '@/components/LoadingState';
 import { useColors } from '@/hooks/useColors';
-import { shadow } from '@/constants/theme';
+import { fonts, shadow } from '@/constants/theme';
 import { useAuthContext } from '@/store/authContext';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -37,7 +37,7 @@ export default function AppLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textLight,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginBottom: 2 },
+        tabBarLabelStyle: { fontSize: 11, fontFamily: fonts.semiBold, marginBottom: 2 },
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopWidth: 1,
@@ -48,7 +48,7 @@ export default function AppLayout() {
         },
         headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: '700', fontSize: 17, color: colors.text },
+        headerTitleStyle: { fontFamily: fonts.bold, fontSize: 17, color: colors.text },
         headerShadowVisible: false,
         sceneStyle: { flex: 1, backgroundColor: colors.background },
       }}

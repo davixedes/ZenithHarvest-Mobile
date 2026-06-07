@@ -10,7 +10,7 @@ import { LoadingState } from '@/components/LoadingState';
 import { NdviGauge } from '@/components/NdviGauge';
 import { NdviHistoryChart } from '@/components/NdviHistoryChart';
 import { useToast } from '@/components/Toast';
-import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import {
   Claim,
@@ -240,7 +240,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       marginTop: spacing.xs,
     },
     lossLabel: { ...typography.label, color: c.text },
-    lossValue: { fontSize: 20, fontWeight: '700', color: c.danger },
+    lossValue: { fontSize: 20, fontFamily: fonts.bold, color: c.danger },
     confidence: { ...typography.caption, textAlign: 'center', marginTop: spacing.xs },
     waitingText: { ...typography.caption, color: c.textMuted, textAlign: 'center', fontStyle: 'italic' },
     deleteBtn: {
@@ -254,6 +254,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       borderColor: c.danger,
       backgroundColor: c.dangerBg,
     },
-    deleteBtnText: { color: c.danger, fontWeight: '700', fontSize: 15 },
+    deleteBtnText: { color: c.danger, fontFamily: fonts.bold, fontSize: 15 },
   });
 }

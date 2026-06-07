@@ -14,7 +14,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack } from 'expo-router';
 
-import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { useAuthContext } from '@/store/authContext';
 import { useThemeContext } from '@/store/themeContext';
@@ -165,7 +165,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       marginBottom: spacing.xs,
       ...shadow.md,
     },
-    avatarText: { fontSize: 38, color: c.textOnPrimary, fontWeight: '800' },
+    avatarText: { fontSize: 38, color: c.textOnPrimary, fontFamily: fonts.extraBold },
     name: { ...typography.heading, color: c.text },
     email: { ...typography.body, color: c.textMuted },
     card: {
@@ -195,7 +195,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       padding: spacing.md,
       ...shadow.sm,
     },
-    aboutBtnText: { color: c.textSecondary, fontWeight: '600', fontSize: 15, flex: 1 },
+    aboutBtnText: { color: c.textSecondary, fontFamily: fonts.semiBold, fontSize: 15, flex: 1 },
     logoutBtn: {
       width: '100%',
       flexDirection: 'row',
@@ -209,6 +209,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       borderColor: c.danger + '30',
     },
     logoutBtnDisabled: { opacity: 0.6 },
-    logoutBtnText: { color: c.danger, fontWeight: '700', fontSize: 15 },
+    logoutBtnText: { color: c.danger, fontFamily: fonts.bold, fontSize: 15 },
   });
 }

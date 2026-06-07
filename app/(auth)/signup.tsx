@@ -17,7 +17,7 @@ import { Link } from 'expo-router';
 import axios from 'axios';
 
 import { useColors, useGradient } from '@/hooks/useColors';
-import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useAuthContext } from '@/store/authContext';
 
 export default function SignupScreen() {
@@ -163,7 +163,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       backgroundColor: 'rgba(255,255,255,0.2)',
       alignItems: 'center', justifyContent: 'center',
     },
-    brandName: { fontSize: 26, fontWeight: '800', color: c.textOnPrimary, letterSpacing: -0.5 },
+    brandName: { fontSize: 26, fontFamily: fonts.extraBold, color: c.textOnPrimary, letterSpacing: -0.5 },
     brandSub: { ...typography.body, color: 'rgba(255,255,255,0.75)', fontSize: 14 },
     form: { backgroundColor: c.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, ...shadow.md },
     formTitle: { ...typography.title, color: c.text },
@@ -181,9 +181,9 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     },
     buttonDisabledWrap: { opacity: 0.6 },
     button: { borderRadius: radius.xl, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.xs },
-    buttonText: { color: c.textOnGradient, fontWeight: '700', fontSize: 16 },
+    buttonText: { color: c.textOnGradient, fontFamily: fonts.bold, fontSize: 16 },
     footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: spacing.xs },
     footerText: { color: c.textMuted, fontSize: 14 },
-    link: { color: c.primary, fontWeight: '700', fontSize: 14 },
+    link: { color: c.primary, fontFamily: fonts.bold, fontSize: 14 },
   });
 }

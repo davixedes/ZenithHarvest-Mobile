@@ -17,7 +17,7 @@ import { router, Stack } from 'expo-router';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { radius, shadow, spacing, typography } from '@/constants/theme';
+import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { farmService } from '@/services/farmService';
 import { useAuthContext } from '@/store/authContext';
@@ -219,7 +219,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       backgroundColor: c.primaryLight,
       borderRadius: radius.full,
     },
-    locBtnText: { color: c.primary, fontWeight: '600', fontSize: 13 },
+    locBtnText: { color: c.primary, fontFamily: fonts.semiBold, fontSize: 13 },
     field: { gap: spacing.xs },
     label: { ...typography.label, color: c.textSecondary },
     input: {
@@ -239,6 +239,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       ...shadow.sm,
     },
     buttonDisabled: { opacity: 0.6 },
-    buttonText: { color: c.textOnPrimary, fontWeight: '700', fontSize: 16 },
+    buttonText: { color: c.textOnPrimary, fontFamily: fonts.bold, fontSize: 16 },
   });
 }

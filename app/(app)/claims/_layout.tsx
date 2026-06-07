@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 
+import { fonts } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export default function ClaimsLayout() {
@@ -9,7 +10,7 @@ export default function ClaimsLayout() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: '700', fontSize: 17, color: colors.text },
+        headerTitleStyle: { fontFamily: fonts.bold, fontSize: 17, color: colors.text },
         headerShadowVisible: false,
         contentStyle: { flex: 1, backgroundColor: colors.background },
       }}

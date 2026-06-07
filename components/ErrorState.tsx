@@ -4,7 +4,7 @@ import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors } from '@/hooks/useColors';
-import { radius, spacing, typography } from '@/constants/theme';
+import { fonts, radius, spacing, typography } from '@/constants/theme';
 
 interface Props {
   message?: string;
@@ -49,5 +49,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     marginTop: spacing.sm,
   },
-  buttonText: { fontWeight: '600', fontSize: 14 },
+  buttonText: { fontFamily: fonts.semiBold, fontSize: 14 },
 });
