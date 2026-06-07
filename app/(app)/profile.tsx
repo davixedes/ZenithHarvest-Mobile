@@ -63,8 +63,13 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
-        <Text style={styles.name}>{user?.name ?? '—'}</Text>
+        <Text style={styles.name}>{user ? `${user.name} ${user.lastName}` : '—'}</Text>
         <Text style={styles.email}>{user?.email ?? '—'}</Text>
+
+        <View style={styles.card}>
+          <InfoRow icon="person-outline" label="Nome completo" value={user ? `${user.name} ${user.lastName}` : '—'} />
+          <InfoRow icon="mail-outline" label="E-mail" value={user?.email ?? '—'} />
+        </View>
 
         <View style={styles.aboutBtn}>
           <Ionicons name={isDark ? 'moon' : 'sunny-outline'} size={20} color={colors.textSecondary} />
@@ -129,6 +134,19 @@ export default function ProfileScreen() {
   );
 }
 
+function InfoRow({ icon, label, value }: { icon: React.ComponentProps<typeof Ionicons>['name']; label: string; value: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  return (
+    <View style={styles.infoRow}>
+      <View style={styles.infoRowLeft}>
+        <Ionicons name={icon} size={16} color={colors.textMuted} />
+        <Text style={styles.infoLabel}>{label}</Text>
+      </View>
+      <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
+    </View>
+  );
+}
 
 function makeStyles(c: ReturnType<typeof useColors>) {
   return StyleSheet.create({
@@ -152,6 +170,25 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     avatarText: { fontSize: 38, color: c.textOnPrimary, fontFamily: fonts.extraBold },
     name: { ...typography.heading, color: c.text },
     email: { ...typography.body, color: c.textMuted },
+    card: {
+      width: '100%',
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.xs,
+      ...shadow.sm,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: c.borderLight,
+    },
+    infoRowLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+    infoLabel: { ...typography.caption, color: c.textMuted },
+    infoValue: { ...typography.body, color: c.text, fontSize: 14, maxWidth: '55%', textAlign: 'right' },
     aboutBtn: {
       width: '100%',
       flexDirection: 'row',
