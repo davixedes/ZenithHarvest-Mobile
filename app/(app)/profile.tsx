@@ -57,16 +57,19 @@ export default function ProfileScreen() {
     <>
       <Stack.Screen options={{ title: 'Perfil', headerShown: true }} />
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {user?.name?.charAt(0).toUpperCase() ?? '?'}
+          </Text>
+        </View>
+
+        <Text style={styles.name}>{user?.name ?? '—'}</Text>
+        <Text style={styles.email}>{user?.email ?? '—'}</Text>
+
         <View style={styles.card}>
-          <View style={styles.avatarWrap}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {user?.name?.charAt(0).toUpperCase() ?? '?'}
-              </Text>
-            </View>
-          </View>
-          <InfoRow icon="person-outline" label="Nome completo" value={user ? `${user.name} ${user.lastName}` : '—'} />
-          <InfoRow icon="mail-outline" label="E-mail" value={user?.email ?? '—'} />
+          <InfoRow label="Nome" value={user?.name ?? '—'} />
+          <InfoRow label="E-mail" value={user?.email ?? '—'} />
+          <InfoRow label="ID" value={user?.id ?? '—'} />
         </View>
 
         <View style={styles.aboutBtn}>
@@ -132,16 +135,13 @@ export default function ProfileScreen() {
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: React.ComponentProps<typeof Ionicons>['name']; label: string; value: string }) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.infoRow}>
-      <View style={styles.infoRowLeft}>
-        <Ionicons name={icon} size={16} color={colors.textMuted} />
-        <Text style={styles.infoLabel}>{label}</Text>
-      </View>
-      <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
     </View>
   );
 }
@@ -151,23 +151,9 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     container: { flex: 1, backgroundColor: c.background },
     content: {
       padding: spacing.lg,
-      alignItems: 'stretch',
+      alignItems: 'center',
       gap: spacing.md,
       paddingBottom: spacing.xxl,
-    },
-    card: {
-      backgroundColor: c.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      gap: spacing.xs,
-      ...shadow.sm,
-    },
-    avatarWrap: {
-      alignItems: 'center',
-      paddingVertical: spacing.md,
-      borderBottomWidth: 1,
-      borderBottomColor: c.borderLight,
-      marginBottom: spacing.xs,
     },
     avatar: {
       width: 88,
@@ -176,21 +162,31 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       backgroundColor: c.primary,
       alignItems: 'center',
       justifyContent: 'center',
+      marginBottom: spacing.xs,
       ...shadow.md,
     },
     avatarText: { fontSize: 38, color: c.textOnPrimary, fontFamily: fonts.extraBold },
+    name: { ...typography.heading, color: c.text },
+    email: { ...typography.body, color: c.textMuted },
+    card: {
+      width: '100%',
+      backgroundColor: c.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+      ...shadow.sm,
+    },
     infoRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
       paddingVertical: spacing.sm,
       borderBottomWidth: 1,
       borderBottomColor: c.borderLight,
     },
-    infoRowLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
     infoLabel: { ...typography.caption, color: c.textMuted },
-    infoValue: { ...typography.body, color: c.text, fontSize: 14, maxWidth: '55%', textAlign: 'right' },
+    infoValue: { ...typography.body, color: c.text, fontSize: 14 },
     aboutBtn: {
+      width: '100%',
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.sm,
@@ -201,6 +197,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     },
     aboutBtnText: { color: c.textSecondary, fontFamily: fonts.semiBold, fontSize: 15, flex: 1 },
     logoutBtn: {
+      width: '100%',
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
