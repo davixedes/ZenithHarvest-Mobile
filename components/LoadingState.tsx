@@ -63,7 +63,7 @@ export function LoadingState({ message = 'Carregando...', variant = 'default', r
 
 const styles = StyleSheet.create({
   shell: { flex: 1 },
-  webShell: StyleSheet.absoluteFillObject,
+  webShell: StyleSheet.absoluteFill,
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   text: { ...typography.caption, marginTop: spacing.xs },
 });

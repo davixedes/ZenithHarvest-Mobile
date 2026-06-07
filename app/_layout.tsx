@@ -60,7 +60,7 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, height: Platform.OS === 'web' ? '100vh' : undefined }}>
+    <GestureHandlerRootView style={{ flex: 1, height: Platform.OS === 'web' ? ('100vh' as unknown as number) : undefined }}>
       <SafeAreaProvider>
         <ThemeProvider initialMode={initialTheme}>
           <AuthProvider>

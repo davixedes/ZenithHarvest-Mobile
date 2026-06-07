@@ -36,7 +36,7 @@ export function ErrorState({ message = 'Algo deu errado.', onRetry }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.sm },
-  webContainer: StyleSheet.absoluteFillObject,
+  webContainer: StyleSheet.absoluteFill,
   iconWrap: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
   title: { ...typography.title },
   message: { ...typography.body, textAlign: 'center' },

@@ -26,5 +26,5 @@ export function ScreenContainer({ children, style, ...rest }: ScreenContainerPro
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  webContainer: StyleSheet.absoluteFillObject,
+  webContainer: StyleSheet.absoluteFill,
 });
