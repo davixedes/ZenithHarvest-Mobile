@@ -55,7 +55,7 @@
 
 ## Implementações planejadas
 
-### 1. Mapa de Fazendas
+### 1. Mapa de Fazendas ✅
 
 **Prioridade:** Alta  
 **Esforço:** Médio  
@@ -85,7 +85,7 @@ Tela de mapa interativo exibindo a localização geográfica de cada fazenda cad
 
 ---
 
-### 2. Integração Sentinel Hub — Overlay NDVI no Mapa
+### 2. Integração Sentinel Hub — Overlay NDVI no Mapa ✅
 
 **Prioridade:** Alta  
 **Esforço:** Médio-alto  
@@ -140,7 +140,7 @@ EXPO_PUBLIC_SENTINEL_INSTANCE_ID=seu-instance-id-aqui
 
 ---
 
-### 3. Foto da Lavoura no Sinistro
+### 3. Foto da Lavoura no Sinistro ✅
 
 **Prioridade:** Média  
 **Esforço:** Baixo  
