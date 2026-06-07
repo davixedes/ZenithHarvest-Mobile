@@ -1,0 +1,271 @@
+# ZenithHarvest Mobile — CI/CD Pipeline (Azure DevOps)
+#
+#  CI : checkout → Node 20 → npm ci → tsc → eslint
+#  CD : expo prebuild (Android) → Gradle assembleRelease (APK assinado)
+#       → Firebase App Distribution → Datadog source-maps  (somente branch main)
+#
+#  Variaveis SECRETAS (Pipelines > Edit > Variables > marcar "Keep this value secret"):
+#    EXPO_PUBLIC_API_URL          - FQDN do gateway de producao (ex: https://aca-zenith-gateway.fqdn.azurecontainerapps.io)
+#    GOOGLE_SERVICES_JSON_B64     - conteudo do google-services.json em base64
+#                                   (gerar: base64 -i google-services.json | tr -d '\n')
+#    KEYSTORE_BASE64              - keystore de release em base64 (.jks)
+#                                   (gerar: base64 -i zenith-release.jks | tr -d '\n')
+#    KEYSTORE_PASSWORD            - senha do keystore
+#    KEY_ALIAS                    - alias da chave dentro do keystore (ex: zenith-key)
+#    KEY_PASSWORD                 - senha da chave
+#    FIREBASE_APP_ID              - App ID do Firebase Android (ex: 1:123456:android:abc123)
+#    FIREBASE_SERVICE_ACCOUNT_B64 - service account JSON do Firebase em base64
+#                                   (gerar: base64 -i serviceAccount.json | tr -d '\n')
+#    DD_API_KEY                   - Datadog API key (Account > API Keys)
+#
+#  Como gerar o keystore de release (rodar uma vez localmente):
+#    keytool -genkeypair -v \
+#      -keystore zenith-release.jks \
+#      -alias zenith-key \
+#      -keyalg RSA -keysize 2048 \
+#      -validity 10000 \
+#      -dname "CN=Zenith Harvest, OU=Mobile, O=Zenith, L=SP, S=SP, C=BR"
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+variables:
+  nodeVersion: '20.x'
+  bundleDir: '$(Build.StagingDirectory)/bundle'
+  appVersion: '1.0.0'
+  appPackage: 'com.zenith.harvest'
+  ddSite: 'datadoghq.com'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+
+# ─── STAGE 1 — CI ─────────────────────────────────────────────────────────────
+- stage: CI
+  displayName: 'CI — Type-check & Lint'
+  jobs:
+    - job: Validate
+      displayName: 'tsc + eslint'
+      steps:
+
+        - checkout: self
+          displayName: 'Checkout'
+
+        - task: NodeTool@0
+          displayName: 'Instalar Node $(nodeVersion)'
+          inputs:
+            versionSpec: '$(nodeVersion)'
+
+        - task: Cache@2
+          displayName: 'Cache node_modules'
+          inputs:
+            key: 'npm | "$(Agent.OS)" | package-lock.json'
+            restoreKeys: |
+              npm | "$(Agent.OS)"
+              npm
+            path: node_modules
+
+        - script: npm ci
+          displayName: 'npm ci'
+
+        - script: npx tsc --noEmit
+          displayName: 'Type-check (tsc --noEmit)'
+
+        - script: npm run lint -- --max-warnings 0
+          displayName: 'ESLint (zero warnings)'
+
+# ─── STAGE 2 — CD ─────────────────────────────────────────────────────────────
+- stage: CD
+  displayName: 'CD — Build & Distribute'
+  dependsOn: CI
+  condition: |
+    and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+
+    # ── 1. Build APK assinado ─────────────────────────────────────────────────
+    - deployment: BuildApk
+      displayName: 'Build APK release'
+      environment: 'production'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+
+              - checkout: self
+                displayName: 'Checkout'
+
+              - task: NodeTool@0
+                displayName: 'Instalar Node $(nodeVersion)'
+                inputs:
+                  versionSpec: '$(nodeVersion)'
+
+              - task: JavaToolInstaller@0
+                displayName: 'Instalar JDK 17'
+                inputs:
+                  versionSpec: '17'
+                  jdkArchitectureOption: x64
+                  jdkSourceOption: PreInstalled
+
+              - task: Cache@2
+                displayName: 'Cache node_modules'
+                inputs:
+                  key: 'npm | "$(Agent.OS)" | package-lock.json'
+                  restoreKeys: |
+                    npm | "$(Agent.OS)"
+                    npm
+                  path: node_modules
+
+              - script: npm ci
+                displayName: 'npm ci'
+
+              - script: |
+                  echo "$GOOGLE_SERVICES_JSON_B64" | base64 -d > /tmp/google-services.json
+                  echo "$KEYSTORE_BASE64"           | base64 -d > /tmp/zenith-release.jks
+                displayName: 'Decodificar segredos (keystore + google-services)'
+                env:
+                  GOOGLE_SERVICES_JSON_B64: $(GOOGLE_SERVICES_JSON_B64)
+                  KEYSTORE_BASE64: $(KEYSTORE_BASE64)
+
+              - script: |
+                  EXPO_PUBLIC_API_URL="$EXPO_PUBLIC_API_URL" \
+                    npx expo prebuild --platform android --no-install --clean
+                displayName: 'expo prebuild — gerar projeto Android nativo'
+                env:
+                  EXPO_PUBLIC_API_URL: $(EXPO_PUBLIC_API_URL)
+
+              - script: |
+                  cp /tmp/google-services.json android/app/google-services.json
+                displayName: 'Injetar google-services.json'
+
+              - script: |
+                  mkdir -p $(bundleDir)
+                  EXPO_PUBLIC_API_URL="$EXPO_PUBLIC_API_URL" \
+                    npx react-native bundle \
+                      --platform android \
+                      --dev false \
+                      --entry-file index.ts \
+                      --bundle-output $(bundleDir)/index.android.bundle \
+                      --sourcemap-output $(bundleDir)/index.android.bundle.map
+                displayName: 'Gerar JS bundle + source map (Metro)'
+                env:
+                  EXPO_PUBLIC_API_URL: $(EXPO_PUBLIC_API_URL)
+
+              - script: |
+                  cd android
+                  chmod +x gradlew
+                  ./gradlew assembleRelease \
+                    -Pandroid.injected.signing.store.file=/tmp/zenith-release.jks \
+                    "-Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD" \
+                    "-Pandroid.injected.signing.key.alias=$KEY_ALIAS" \
+                    "-Pandroid.injected.signing.key.password=$KEY_PASSWORD"
+                displayName: 'Gradle assembleRelease (APK assinado)'
+                env:
+                  KEYSTORE_PASSWORD: $(KEYSTORE_PASSWORD)
+                  KEY_ALIAS: $(KEY_ALIAS)
+                  KEY_PASSWORD: $(KEY_PASSWORD)
+
+              - task: CopyFiles@2
+                displayName: 'Copiar APK para staging'
+                inputs:
+                  sourceFolder: 'android/app/build/outputs/apk/release'
+                  contents: '*.apk'
+                  targetFolder: '$(Build.ArtifactStagingDirectory)/apk'
+
+              - task: CopyFiles@2
+                displayName: 'Copiar source maps para staging'
+                inputs:
+                  sourceFolder: '$(bundleDir)'
+                  contents: '*.bundle*'
+                  targetFolder: '$(Build.ArtifactStagingDirectory)/sourcemaps'
+
+              - task: PublishBuildArtifacts@1
+                displayName: 'Publicar artefatos (APK + source maps)'
+                inputs:
+                  pathToPublish: '$(Build.ArtifactStagingDirectory)'
+                  artifactName: 'zenith-harvest-android'
+
+    # ── 2. Firebase App Distribution ─────────────────────────────────────────
+    - deployment: Distribute
+      displayName: 'Firebase App Distribution'
+      environment: 'production'
+      dependsOn: BuildApk
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+
+              - task: DownloadBuildArtifacts@1
+                displayName: 'Baixar artefato do build'
+                inputs:
+                  buildType: 'current'
+                  downloadType: 'single'
+                  artifactName: 'zenith-harvest-android'
+                  downloadPath: '$(Pipeline.Workspace)'
+
+              - task: NodeTool@0
+                displayName: 'Instalar Node $(nodeVersion)'
+                inputs:
+                  versionSpec: '$(nodeVersion)'
+
+              - script: |
+                  echo "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d > /tmp/firebase-sa.json
+                  export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-sa.json
+
+                  APK=$(find "$(Pipeline.Workspace)/zenith-harvest-android/apk" -name "*.apk" | head -1)
+                  echo "Distribuindo APK: $APK"
+
+                  npx firebase-tools appdistribution:distribute "$APK" \
+                    --app "$(FIREBASE_APP_ID)" \
+                    --release-notes "Build #$(Build.BuildId) — $(Build.SourceVersionMessage)" \
+                    --groups "internal-testers"
+                displayName: 'Upload para Firebase App Distribution'
+                env:
+                  FIREBASE_SERVICE_ACCOUNT_B64: $(FIREBASE_SERVICE_ACCOUNT_B64)
+                  FIREBASE_APP_ID: $(FIREBASE_APP_ID)
+
+    # ── 3. Datadog source maps ────────────────────────────────────────────────
+    - deployment: DatadogSourceMaps
+      displayName: 'Datadog — upload source maps'
+      environment: 'production'
+      dependsOn: BuildApk
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+
+              - task: DownloadBuildArtifacts@1
+                displayName: 'Baixar artefato do build'
+                inputs:
+                  buildType: 'current'
+                  downloadType: 'single'
+                  artifactName: 'zenith-harvest-android'
+                  downloadPath: '$(Pipeline.Workspace)'
+
+              - task: NodeTool@0
+                displayName: 'Instalar Node $(nodeVersion)'
+                inputs:
+                  versionSpec: '$(nodeVersion)'
+
+              - script: |
+                  BUNDLE="$(Pipeline.Workspace)/zenith-harvest-android/sourcemaps/index.android.bundle"
+                  SOURCEMAP="$(Pipeline.Workspace)/zenith-harvest-android/sourcemaps/index.android.bundle.map"
+
+                  npx @datadog/datadog-ci react-native upload \
+                    --platform android \
+                    --service zenith-harvest \
+                    --bundle "$BUNDLE" \
+                    --sourcemap "$SOURCEMAP" \
+                    --release-version "$(appVersion)" \
+                    --build-version "$(Build.BuildId)"
+                displayName: 'Upload source maps para Datadog RUM'
+                env:
+                  DATADOG_API_KEY: $(DD_API_KEY)
+                  DATADOG_SITE: $(ddSite)
