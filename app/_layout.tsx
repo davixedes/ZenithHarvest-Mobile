@@ -47,8 +47,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     SecureStore.getItemAsync('app_theme_preference').then((saved) => {
-      setInitialTheme(saved === 'dark' ? 'dark' : 'light');
-    }).catch(() => setInitialTheme('light'));
+      setInitialTheme(saved === 'light' ? 'light' : 'dark');
+    }).catch(() => setInitialTheme('dark'));
   }, []);
 
   const ready = (fontsLoaded || !!fontError) && initialTheme !== null;

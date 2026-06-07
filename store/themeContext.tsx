@@ -19,8 +19,8 @@ async function persistTheme(mode: ThemeMode) {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  isDark: false,
-  mode: 'light',
+  isDark: true,
+  mode: 'dark',
   toggleTheme: () => {},
 });
 
@@ -29,7 +29,7 @@ interface ThemeProviderProps {
   initialMode?: ThemeMode;
 }
 
-export function ThemeProvider({ children, initialMode = 'light' }: ThemeProviderProps) {
+export function ThemeProvider({ children, initialMode = 'dark' }: ThemeProviderProps) {
   const [mode, setMode] = useState<ThemeMode>(initialMode);
 
   const toggleTheme = useCallback(() => {
