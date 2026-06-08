@@ -79,13 +79,22 @@ export default function FarmsScreen() {
           title: 'Minhas Fazendas',
           headerShown: true,
           headerRight: () => (
-            <TouchableOpacity
-              onPress={() => router.push('/(app)/farms/new')}
-              style={{ marginRight: spacing.sm, padding: 4 }}
-              accessibilityLabel="Adicionar nova fazenda"
-            >
-              <Ionicons name="add-circle-outline" size={26} color={colors.primary} />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: spacing.sm }}>
+              <TouchableOpacity
+                onPress={() => router.push('/(app)/farms/map')}
+                style={{ padding: 4, marginRight: spacing.xs }}
+                accessibilityLabel="Ver mapa de fazendas"
+              >
+                <Ionicons name="map-outline" size={22} color={colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push('/(app)/farms/new')}
+                style={{ padding: 4 }}
+                accessibilityLabel="Adicionar nova fazenda"
+              >
+                <Ionicons name="add-circle-outline" size={26} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />

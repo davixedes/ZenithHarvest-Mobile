@@ -83,7 +83,32 @@ export default function NewClaimScreen() {
     } catch {}
   }
 
-  async function pickPhoto() {
+  function pickPhoto() {
+    Alert.alert('Adicionar foto', 'Escolha a origem da imagem', [
+      { text: 'Câmera', onPress: pickFromCamera },
+      { text: 'Galeria', onPress: pickFromGallery },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  }
+
+  async function pickFromCamera() {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissão necessária', 'Permita o acesso à câmera para tirar fotos.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setPhotoUri(result.assets[0].uri);
+      setPhotoUrl(result.assets[0].uri);
+    }
+  }
+
+  async function pickFromGallery() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permissão necessária', 'Permita o acesso à galeria para adicionar fotos.');
@@ -257,7 +282,19 @@ export default function NewClaimScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Foto do Dano</Text>
+          <View style={styles.photoHeader}>
+            <Text style={styles.sectionTitle}>Foto do Dano</Text>
+            {photoUri ? (
+              <TouchableOpacity
+                onPress={() => { setPhotoUri(null); setPhotoUrl(null); }}
+                accessibilityLabel="Remover foto"
+                style={styles.removePhotoBtn}
+              >
+                <Ionicons name="trash-outline" size={16} color={colors.danger} />
+                <Text style={styles.removePhotoText}>Remover</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
           <TouchableOpacity
             style={styles.photoBtn}
             onPress={pickPhoto}
@@ -268,7 +305,7 @@ export default function NewClaimScreen() {
             ) : (
               <View style={styles.photoBtnInner}>
                 <Ionicons name="camera-outline" size={28} color={colors.textLight} />
-                <Text style={styles.photoBtnText}>Adicionar foto</Text>
+                <Text style={styles.photoBtnText}>Câmera ou galeria</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -334,6 +371,9 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     optionSelected: { backgroundColor: c.primary, borderColor: c.primary },
     optionText: { fontSize: 14, color: c.textSecondary },
     optionTextSelected: { color: c.textOnPrimary, fontFamily: fonts.bold },
+    photoHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    removePhotoBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    removePhotoText: { fontFamily: fonts.medium, fontSize: 13, color: c.danger },
     photoBtn: {
       borderWidth: 2,
       borderStyle: 'dashed',
