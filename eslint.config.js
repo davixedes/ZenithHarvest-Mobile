@@ -5,7 +5,7 @@ module.exports = [
   ...(Array.isArray(expo) ? expo : [expo]),
   {
     settings: {
-      react: { version: 'detect' },
+      react: { version: '19' },
     },
   },
 ];
