@@ -40,8 +40,8 @@ export default function SignupScreen() {
       setError('Preencha todos os campos.');
       return;
     }
-    if (password.length < 6) {
-      setError('A senha deve ter ao menos 6 caracteres.');
+    if (password.length < 8) {
+      setError('A senha deve ter ao menos 8 caracteres.');
       return;
     }
     setError('');
@@ -126,7 +126,7 @@ export default function SignupScreen() {
             <Text style={styles.label}>Senha</Text>
             <TextInput style={styles.input} value={password} onChangeText={setPassword}
               secureTextEntry autoComplete="new-password"
-              placeholder="Mínimo 6 caracteres" placeholderTextColor={colors.textLight} accessibilityLabel="Campo senha" />
+              placeholder="Mínimo 8 caracteres" placeholderTextColor={colors.textLight} accessibilityLabel="Campo senha" />
           </View>
 
           <TouchableOpacity onPress={handleSignup} disabled={loading} accessibilityLabel="Criar conta"

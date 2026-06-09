@@ -58,26 +58,22 @@ export const CLAIM_SITUATION_COLOR: Record<number, string> = {
   5: '#006E1B',
 };
 
-/** IDs do seed: 1=Geada, 2=Seca, 3=Granizo, 4=Inundação, 5=Praga */
+/** IDs do seed: 1=Climático, 2=Biológico, 3=Operacional */
 export const CLAIM_CATEGORY: Record<number, string> = {
-  1: 'Geada',
-  2: 'Seca',
-  3: 'Granizo',
-  4: 'Inundação',
-  5: 'Praga',
+  1: 'Climático',
+  2: 'Biológico',
+  3: 'Operacional',
 };
 
+/** IDs do seed: 1=Estiagem prolongada, 2=Geada de radiação, 3=Tempestade de granizo,
+ *  4=Alagamento, 5=Infestação de pragas, 6=Queimada */
 export const CLAIM_SUBCATEGORY: Record<number, string> = {
-  1: 'Geada leve',
-  2: 'Geada severa',
-  3: 'Seca moderada',
-  4: 'Seca extrema',
-  5: 'Granizo localizado',
-  6: 'Granizo extenso',
-  7: 'Alagamento parcial',
-  8: 'Alagamento total',
-  9: 'Praga foliar',
-  10: 'Praga de solo',
+  1: 'Estiagem prolongada',
+  2: 'Geada de radiação',
+  3: 'Tempestade de granizo',
+  4: 'Alagamento',
+  5: 'Infestação de pragas',
+  6: 'Queimada',
 };
 
 export const claimService = {

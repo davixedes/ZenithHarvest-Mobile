@@ -19,6 +19,23 @@ export interface CreatePlotPayload {
   plotSituationId: number;
   areaHectares?: number;
   cropId?: string;
+  productionSystemId?: number;
+  plantingDate?: string;
+  estimatedHarvestDate?: string;
+  cycleDays?: number;
+  seedVariety?: string;
+}
+
+export interface UpdatePlotPayload {
+  identifier?: string;
+  plotSituationId?: number;
+  areaHectares?: number;
+  cropId?: string;
+  productionSystemId?: number;
+  plantingDate?: string;
+  estimatedHarvestDate?: string;
+  cycleDays?: number;
+  seedVariety?: string;
 }
 
 export interface NdviHistorico {
@@ -63,6 +80,11 @@ export const plotService = {
 
   async create(payload: CreatePlotPayload): Promise<Plot> {
     const { data } = await api.post('/api/plots', payload);
+    return extractEntity<Plot>(data);
+  },
+
+  async update(id: string, payload: UpdatePlotPayload): Promise<Plot> {
+    const { data } = await api.put(`/api/plots/${id}`, payload);
     return extractEntity<Plot>(data);
   },
 
