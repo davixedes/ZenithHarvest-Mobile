@@ -23,6 +23,7 @@ import { farmService } from '@/services/farmService';
 import { Lookup, lookupLabel, lookupService } from '@/services/lookupService';
 import { useAuthContext } from '@/store/authContext';
 import { useToast } from '@/components/Toast';
+import { nirfMask, parseDecimalBR } from '@/utils/masks';
 
 export default function NewFarmScreen() {
   const { user } = useAuthContext();
@@ -86,9 +87,9 @@ export default function NewFarmScreen() {
         carRegistration: carRegistration.trim(),
         nirf: nirf.trim(),
         state: state.trim().toUpperCase(),
-        totalAreaHectares: parseFloat(totalAreaHectares),
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
+        totalAreaHectares: parseDecimalBR(totalAreaHectares),
+        latitude: parseDecimalBR(latitude),
+        longitude: parseDecimalBR(longitude),
         biomeId: biomeId ?? undefined,
         propertyType: propertyType.trim() || undefined,
       });
@@ -114,7 +115,7 @@ export default function NewFarmScreen() {
 
           <Field label="Nome da fazenda *" value={name} onChange={setName} placeholder="Ex: Fazenda Santa Cruz" />
           <Field label="CAR (Cadastro Ambiental Rural) *" value={carRegistration} onChange={setCarRegistration} placeholder="SP-1234567-XXXXX" />
-          <Field label="NIRF *" value={nirf} onChange={setNirf} placeholder="00000000-0" keyboardType="numeric" />
+          <Field label="NIRF *" value={nirf} onChange={(t) => setNirf(nirfMask(t))} placeholder="00000000-0" keyboardType="numeric" />
           <Field label="Estado (UF) *" value={state} onChange={setState} placeholder="SP" maxLength={2} />
           <Field
             label="Tipo de propriedade (opcional)"
@@ -126,7 +127,7 @@ export default function NewFarmScreen() {
             label="Área total (hectares) *"
             value={totalAreaHectares}
             onChange={setTotalAreaHectares}
-            placeholder="100.5"
+            placeholder="100,5"
             keyboardType="numeric"
           />
         </View>

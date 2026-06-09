@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -22,6 +23,7 @@ import { LoadingState } from '@/components/LoadingState';
 import { NdviHistoryChart } from '@/components/NdviHistoryChart';
 import { useToast } from '@/components/Toast';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
+import { nirfMask, parseDecimalBR } from '@/utils/masks';
 import { useColors } from '@/hooks/useColors';
 import { Crop, cropService } from '@/services/cropService';
 import { Farm, farmService } from '@/services/farmService';
@@ -45,6 +47,7 @@ export default function FarmDetailScreen() {
   const [ndviHistory, setNdviHistory] = useState<NdviHistorico[]>([]);
   const [ndviLoading, setNdviLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -82,13 +85,14 @@ export default function FarmDetailScreen() {
       }
       setName(farmData.name);
       setCarRegistration(farmData.carRegistration);
-      setNirf(farmData.nirf);
+      setNirf(nirfMask(farmData.nirf));
       setTotalAreaHectares(String(farmData.totalAreaHectares));
       setState(farmData.state);
     } catch {
       setError('Não foi possível carregar a fazenda.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [id]);
 
@@ -134,7 +138,7 @@ export default function FarmDetailScreen() {
         nirf: nirf.trim(),
         latitude: farm!.latitude,
         longitude: farm!.longitude,
-        totalAreaHectares: parseFloat(totalAreaHectares),
+        totalAreaHectares: parseDecimalBR(totalAreaHectares),
         state: state.trim(),
       });
       setFarm(updated);
@@ -173,7 +177,7 @@ export default function FarmDetailScreen() {
         farmId: id,
         identifier: plotIdentifier.trim(),
         plotSituationId,
-        areaHectares: plotArea ? parseFloat(plotArea) : undefined,
+        areaHectares: plotArea ? parseDecimalBR(plotArea) : undefined,
         cropId: selectedCropId ?? undefined,
       };
       const newPlot = await plotService.create(payload);
@@ -244,13 +248,23 @@ export default function FarmDetailScreen() {
         }}
       />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => { setRefreshing(true); load(); }}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
         {editing ? (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Editar Fazenda</Text>
             <Field label="Nome" value={name} onChange={setName} />
             <Field label="CAR" value={carRegistration} onChange={setCarRegistration} />
-            <Field label="NIRF" value={nirf} onChange={setNirf} />
+            <Field label="NIRF" value={nirf} onChange={(t) => setNirf(nirfMask(t))} keyboardType="numeric" />
             <Field label="Área (ha)" value={totalAreaHectares} onChange={setTotalAreaHectares} keyboardType="numeric" />
             <Field label="Estado (UF)" value={state} onChange={setState} />
             <TouchableOpacity

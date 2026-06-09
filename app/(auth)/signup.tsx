@@ -19,6 +19,7 @@ import axios from 'axios';
 import { useColors, useGradient } from '@/hooks/useColors';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useAuthContext } from '@/store/authContext';
+import { cpfMask, digits, phoneMask } from '@/utils/masks';
 
 export default function SignupScreen() {
   const { register } = useAuthContext();
@@ -50,8 +51,8 @@ export default function SignupScreen() {
       await register({
         name: name.trim(),
         lastName: lastName.trim(),
-        cpf: cpf.trim().replace(/\D/g, ''),
-        phone: phone.trim().replace(/\D/g, ''),
+        cpf: digits(cpf),
+        phone: digits(phone),
         email: email.trim().toLowerCase(),
         password,
       });
@@ -105,14 +106,18 @@ export default function SignupScreen() {
 
           <View style={styles.field}>
             <Text style={styles.label}>CPF</Text>
-            <TextInput style={styles.input} value={cpf} onChangeText={setCpf}
-              keyboardType="numeric" placeholder="000.000.000-00" placeholderTextColor={colors.textLight} accessibilityLabel="Campo CPF" />
+            <TextInput style={styles.input} value={cpf}
+              onChangeText={(t) => setCpf(cpfMask(t))}
+              keyboardType="numeric" placeholder="000.000.000-00"
+              placeholderTextColor={colors.textLight} accessibilityLabel="Campo CPF" />
           </View>
 
           <View style={styles.field}>
             <Text style={styles.label}>Telefone</Text>
-            <TextInput style={styles.input} value={phone} onChangeText={setPhone}
-              keyboardType="phone-pad" placeholder="(11) 99999-9999" placeholderTextColor={colors.textLight} accessibilityLabel="Campo telefone" />
+            <TextInput style={styles.input} value={phone}
+              onChangeText={(t) => setPhone(phoneMask(t))}
+              keyboardType="phone-pad" placeholder="(11) 99999-9999"
+              placeholderTextColor={colors.textLight} accessibilityLabel="Campo telefone" />
           </View>
 
           <View style={styles.field}>
