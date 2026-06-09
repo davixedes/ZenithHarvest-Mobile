@@ -20,6 +20,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { farmService } from '@/services/farmService';
+import { Lookup, lookupLabel, lookupService } from '@/services/lookupService';
 import { useAuthContext } from '@/store/authContext';
 import { useToast } from '@/components/Toast';
 
@@ -33,14 +34,21 @@ export default function NewFarmScreen() {
   const [carRegistration, setCarRegistration] = useState('');
   const [nirf, setNirf] = useState('');
   const [state, setState] = useState('');
+  const [propertyType, setPropertyType] = useState('');
   const [totalAreaHectares, setTotalAreaHectares] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
+  const [biomes, setBiomes] = useState<Lookup[]>([]);
+  const [biomeId, setBiomeId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
 
   useEffect(() => {
     getLocation();
+    lookupService
+      .biomes()
+      .then(setBiomes)
+      .catch(() => setBiomes([]));
   }, []);
 
   async function getLocation() {
@@ -81,6 +89,8 @@ export default function NewFarmScreen() {
         totalAreaHectares: parseFloat(totalAreaHectares),
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
+        biomeId: biomeId ?? undefined,
+        propertyType: propertyType.trim() || undefined,
       });
       showToast(`"${farm.name}" cadastrada com sucesso!`, 'success');
       router.replace(`/(app)/farms/${farm.id}`);
@@ -107,6 +117,12 @@ export default function NewFarmScreen() {
           <Field label="NIRF *" value={nirf} onChange={setNirf} placeholder="00000000-0" keyboardType="numeric" />
           <Field label="Estado (UF) *" value={state} onChange={setState} placeholder="SP" maxLength={2} />
           <Field
+            label="Tipo de propriedade (opcional)"
+            value={propertyType}
+            onChange={setPropertyType}
+            placeholder="Ex: Própria, Arrendada, Posse"
+          />
+          <Field
             label="Área total (hectares) *"
             value={totalAreaHectares}
             onChange={setTotalAreaHectares}
@@ -114,6 +130,29 @@ export default function NewFarmScreen() {
             keyboardType="numeric"
           />
         </View>
+
+        {biomes.length > 0 ? (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Bioma</Text>
+            <View style={styles.chipGroup}>
+              {biomes.map((biome) => {
+                const selected = biomeId === biome.id;
+                return (
+                  <TouchableOpacity
+                    key={biome.id}
+                    style={[styles.chip, selected && styles.chipSelected]}
+                    onPress={() => setBiomeId(selected ? null : biome.id)}
+                    accessibilityLabel={`Bioma ${lookupLabel(biome)}`}
+                  >
+                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                      {lookupLabel(biome)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
 
         <View style={styles.card}>
           <View style={styles.rowBetween}>
@@ -220,6 +259,18 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       borderRadius: radius.full,
     },
     locBtnText: { color: c.primary, fontFamily: fonts.semiBold, fontSize: 13 },
+    chipGroup: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+    chip: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.full,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      backgroundColor: c.background,
+    },
+    chipSelected: { borderColor: c.primary, backgroundColor: c.primaryLight },
+    chipText: { fontSize: 14, color: c.textSecondary, fontFamily: fonts.medium },
+    chipTextSelected: { color: c.primary, fontFamily: fonts.bold },
     field: { gap: spacing.xs },
     label: { ...typography.label, color: c.textSecondary },
     input: {

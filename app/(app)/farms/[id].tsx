@@ -60,8 +60,10 @@ export default function FarmDetailScreen() {
   const [plotModal, setPlotModal] = useState(false);
   const [plotIdentifier, setPlotIdentifier] = useState('');
   const [plotArea, setPlotArea] = useState('');
+  const [plotSituationId, setPlotSituationId] = useState(1);
   const [savingPlot, setSavingPlot] = useState(false);
   const [crops, setCrops] = useState<Crop[]>([]);
+  const [cropsLoading, setCropsLoading] = useState(false);
   const [selectedCropId, setSelectedCropId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -148,10 +150,15 @@ export default function FarmDetailScreen() {
   async function openPlotModal() {
     setPlotModal(true);
     if (crops.length === 0) {
+      setCropsLoading(true);
       try {
         const data = await cropService.list();
         setCrops(data);
-      } catch {}
+      } catch {
+        setCrops([]);
+      } finally {
+        setCropsLoading(false);
+      }
     }
   }
 
@@ -165,7 +172,7 @@ export default function FarmDetailScreen() {
       const payload: CreatePlotPayload = {
         farmId: id,
         identifier: plotIdentifier.trim(),
-        plotSituationId: 1,
+        plotSituationId,
         areaHectares: plotArea ? parseFloat(plotArea) : undefined,
         cropId: selectedCropId ?? undefined,
       };
@@ -175,6 +182,7 @@ export default function FarmDetailScreen() {
       setPlotModal(false);
       setPlotIdentifier('');
       setPlotArea('');
+      setPlotSituationId(1);
       setSelectedCropId(null);
       showToast('Talhão cadastrado com sucesso.', 'success');
     } catch {
@@ -377,9 +385,33 @@ export default function FarmDetailScreen() {
                 />
               </View>
 
-              {crops.length > 0 && (
-                <View style={styles.field}>
-                  <Text style={styles.label}>Cultura (opcional)</Text>
+              <View style={styles.field}>
+                <Text style={styles.label}>Situação</Text>
+                <View style={styles.situationRow}>
+                  {Object.entries(PLOT_SITUATION).map(([key, label]) => {
+                    const sid = Number(key);
+                    const selected = plotSituationId === sid;
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        style={[styles.cropChip, selected && styles.cropChipSelected]}
+                        onPress={() => setPlotSituationId(sid)}
+                        accessibilityLabel={`Situação ${label}`}
+                      >
+                        <Text style={[styles.cropChipText, selected && styles.cropChipTextSelected]}>
+                          {label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.field}>
+                <Text style={styles.label}>Cultura (opcional)</Text>
+                {cropsLoading ? (
+                  <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.sm }} />
+                ) : crops.length > 0 ? (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
                     <View style={styles.cropRow}>
                       {crops.map((crop) => (
@@ -404,13 +436,15 @@ export default function FarmDetailScreen() {
                       ))}
                     </View>
                   </ScrollView>
-                </View>
-              )}
+                ) : (
+                  <Text style={styles.cropEmptyText}>Nenhuma cultura disponível no catálogo.</Text>
+                )}
+              </View>
 
               <View style={styles.modalActions}>
                 <TouchableOpacity
                   style={styles.modalCancel}
-                  onPress={() => { setPlotModal(false); setPlotIdentifier(''); setPlotArea(''); setSelectedCropId(null); }}
+                  onPress={() => { setPlotModal(false); setPlotIdentifier(''); setPlotArea(''); setPlotSituationId(1); setSelectedCropId(null); }}
                   accessibilityLabel="Cancelar"
                 >
                   <Text style={styles.modalCancelText}>Cancelar</Text>
@@ -520,12 +554,14 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     infoRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: spacing.md,
       paddingVertical: spacing.sm,
       borderBottomWidth: 1,
       borderBottomColor: c.borderLight,
     },
-    infoLabel: { ...typography.caption, color: c.textMuted },
-    infoValue: { ...typography.body, color: c.text, fontSize: 15 },
+    infoLabel: { ...typography.caption, color: c.textMuted, flexShrink: 0 },
+    infoValue: { ...typography.body, color: c.text, fontSize: 15, flex: 1, textAlign: 'right' },
     plotCard: {
       backgroundColor: c.surface,
       borderRadius: radius.md,
@@ -587,6 +623,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     },
     modalCancelText: { color: c.textMuted, fontFamily: fonts.semiBold },
     cropRow: { flexDirection: 'row', gap: spacing.xs, paddingBottom: spacing.xs },
+    situationRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: 4 },
     cropChip: {
       paddingHorizontal: spacing.sm,
       paddingVertical: 6,
@@ -598,6 +635,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     cropChipSelected: { borderColor: c.primary, backgroundColor: c.primaryLight },
     cropChipText: { fontSize: 13, color: c.textMuted, fontFamily: fonts.medium },
     cropChipTextSelected: { color: c.primary, fontFamily: fonts.bold },
+    cropEmptyText: { ...typography.caption, color: c.textMuted, marginTop: spacing.xs },
     modalConfirm: {
       flex: 1,
       padding: spacing.md,
