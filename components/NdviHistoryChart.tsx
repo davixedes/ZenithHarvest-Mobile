@@ -17,6 +17,7 @@ interface NdviHistoryChartProps {
 }
 
 interface ChartPoint {
+  key: string;
   x: number;
   y: number;
   label: string;
@@ -42,7 +43,7 @@ function buildPoints(
     const label = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(
       new Date(item.imageDate)
     );
-    return { x, y, label, value };
+    return { key: `${item.imageDate}-${idx}`, x, y, label, value };
   });
 }
 
@@ -134,7 +135,7 @@ export function NdviHistoryChart({
           const next = points[idx + 1];
           return (
             <Segment
-              key={`${point.label}-${next.label}`}
+              key={`seg-${point.key}`}
               x1={point.x}
               y1={point.y}
               x2={next.x}
@@ -146,7 +147,7 @@ export function NdviHistoryChart({
 
         {points.map((point) => (
           <View
-            key={point.label}
+            key={`dot-${point.key}`}
             style={[
               styles.dot,
               {
@@ -163,7 +164,7 @@ export function NdviHistoryChart({
 
         {points.map((point) => (
           <Text
-            key={`label-${point.label}`}
+            key={`label-${point.key}`}
             style={[styles.xLabel, { left: point.x - 18, top: CHART_HEIGHT - 20 }]}
           >
             {point.label}

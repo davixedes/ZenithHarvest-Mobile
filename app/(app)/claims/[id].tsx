@@ -20,8 +20,14 @@ import {
   CLAIM_SUBCATEGORY,
   claimService,
 } from '@/services/claimService';
+import { farmService } from '@/services/farmService';
 import { NdviHistorico, plotService } from '@/services/plotService';
 import { policyService } from '@/services/policyService';
+
+interface ClaimOrigin {
+  plotIdentifier: string | null;
+  farmName: string | null;
+}
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -43,6 +49,7 @@ export default function ClaimDetailScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { showToast } = useToast();
   const [claim, setClaim] = useState<Claim | null>(null);
+  const [origin, setOrigin] = useState<ClaimOrigin>({ plotIdentifier: null, farmName: null });
   const [ndviHistory, setNdviHistory] = useState<NdviHistorico[]>([]);
   const [ndviLoading, setNdviLoading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -56,7 +63,12 @@ export default function ClaimDetailScreen() {
 
       setNdviLoading(true);
       try {
+        // Origem do sinistro: Claim → Policy → Plot → Farm.
         const policy = await policyService.getById(data.policyId);
+        const plot = await plotService.getById(policy.plotId);
+        const farm = await farmService.getById(plot.farmId).catch(() => null);
+        setOrigin({ plotIdentifier: plot.identifier, farmName: farm?.name ?? null });
+
         const history = await plotService.getNdviHistorico(policy.plotId);
         setNdviHistory(history);
       } catch {
@@ -106,12 +118,20 @@ export default function ClaimDetailScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <View style={styles.headerInfo}>
-            <Text style={styles.claimNumber}>{claim.claimNumber}</Text>
-            <Text style={styles.claimDate}>Aberto em {formatDate(claim.createdAt)}</Text>
+            <Text style={styles.claimNumber}>{origin.plotIdentifier ?? claim.claimNumber}</Text>
+            <Text style={styles.claimDate}>
+              {claim.claimNumber} · Aberto em {formatDate(claim.createdAt)}
+            </Text>
           </View>
           <View style={[styles.badge, { backgroundColor: situationColor + '20' }]}>
             <Text style={[styles.badgeText, { color: situationColor }]}>{situationLabel}</Text>
           </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Origem</Text>
+          <InfoRow label="Fazenda" value={origin.farmName ?? '—'} />
+          <InfoRow label="Talhão" value={origin.plotIdentifier ?? '—'} />
         </View>
 
         <View style={styles.card}>
@@ -139,12 +159,12 @@ export default function ClaimDetailScreen() {
             {claim.totalLossPct != null && (
               <View style={styles.lossRow}>
                 <Text style={styles.lossLabel}>Perda estimada</Text>
-                <Text style={styles.lossValue}>{(claim.totalLossPct * 100).toFixed(1)}%</Text>
+                <Text style={styles.lossValue}>{claim.totalLossPct.toFixed(1)}%</Text>
               </View>
             )}
             {claim.mlConfidenceScore != null && (
               <Text style={styles.confidence}>
-                Confiança IA: {(claim.mlConfidenceScore * 100).toFixed(0)}%
+                Confiança IA: {claim.mlConfidenceScore.toFixed(0)}%
                 {claim.fraudFlag ? ' · Alerta de fraude' : ''}
               </Text>
             )}
@@ -211,10 +231,10 @@ function makeStyles(c: ReturnType<typeof useColors>) {
       padding: spacing.md,
       ...shadow.sm,
     },
-    headerInfo: { gap: spacing.xs },
+    headerInfo: { flex: 1, gap: spacing.xs, marginRight: spacing.sm },
     claimNumber: { ...typography.title, color: c.text },
     claimDate: { ...typography.caption, color: c.textMuted },
-    badge: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
+    badge: { flexShrink: 0, paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
     badgeText: { ...typography.micro },
     card: {
       backgroundColor: c.surface,
