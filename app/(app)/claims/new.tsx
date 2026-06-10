@@ -49,7 +49,6 @@ export default function NewClaimScreen() {
   const [selectedPolicyId, setSelectedPolicyId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [subCategoryId, setSubCategoryId] = useState<number | null>(null);
-  const [claimNumber, setClaimNumber] = useState('');
   const [description, setDescription] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -138,14 +137,9 @@ export default function NewClaimScreen() {
       Alert.alert('Atenção', 'Selecione a subcategoria.');
       return;
     }
-    if (!claimNumber.trim()) {
-      Alert.alert('Atenção', 'Informe o número do sinistro.');
-      return;
-    }
     setSubmitting(true);
     try {
       const claim = await claimService.create({
-        claimNumber: claimNumber.trim(),
         policyId: selectedPolicyId,
         claimSituationId: 1,
         categoryId,
@@ -174,19 +168,6 @@ export default function NewClaimScreen() {
     >
       <Stack.Screen options={{ title: 'Abrir Sinistro', headerShown: true }} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Número do Sinistro</Text>
-          <TextInput
-            style={styles.input}
-            value={claimNumber}
-            onChangeText={setClaimNumber}
-            placeholder="SIN-2024-001"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="characters"
-            accessibilityLabel="Número do sinistro"
-          />
-        </View>
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Apólice</Text>
