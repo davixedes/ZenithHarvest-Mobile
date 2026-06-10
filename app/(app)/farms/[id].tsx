@@ -5,7 +5,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -25,6 +24,7 @@ import { useToast } from '@/components/Toast';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { nirfMask, parseDecimalBR } from '@/utils/masks';
 import { useColors } from '@/hooks/useColors';
+import { useRefreshControl } from '@/hooks/useRefreshControl';
 import { Crop, cropService } from '@/services/cropService';
 import { Farm, farmService } from '@/services/farmService';
 import {
@@ -72,12 +72,14 @@ export default function FarmDetailScreen() {
   const load = useCallback(async () => {
     try {
       setError('');
-      const [farmData, plotsData] = await Promise.all([
+      const [farmData, plotsData, cropsData] = await Promise.all([
         farmService.getById(id),
         plotService.listByFarm(id),
+        cropService.list().catch(() => [] as Crop[]),
       ]);
       setFarm(farmData);
       setPlots(plotsData);
+      setCrops(cropsData);
       if (plotsData.length > 0) {
         setSelectedPlotId(plotsData[0].id);
       } else {
@@ -99,6 +101,13 @@ export default function FarmDetailScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const refreshControl = useRefreshControl(refreshing, () => {
+    setRefreshing(true);
+    load();
+  });
+
+  const cropById = useMemo(() => new Map(crops.map((c) => [c.id, c])), [crops]);
 
   useEffect(() => {
     if (!selectedPlotId) {
@@ -234,6 +243,15 @@ export default function FarmDetailScreen() {
         options={{
           title: farm.name,
           headerShown: true,
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/(app)/farms'))}
+              style={{ marginRight: spacing.sm, padding: 4 }}
+              accessibilityLabel="Voltar"
+            >
+              <Ionicons name="chevron-back" size={26} color={colors.text} />
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <TouchableOpacity
               onPress={() => setEditing((e) => !e)}
@@ -250,14 +268,7 @@ export default function FarmDetailScreen() {
 
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); load(); }}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
+        refreshControl={refreshControl}
       >
         {editing ? (
           <View style={styles.card}>
@@ -312,17 +323,24 @@ export default function FarmDetailScreen() {
               const color = PLOT_SITUATION_COLOR[plot.plotSituationId] ?? colors.textMuted;
               const label = PLOT_SITUATION[plot.plotSituationId] ?? `Situação ${plot.plotSituationId}`;
               const isSelected = selectedPlotId === plot.id;
+              const cropName = plot.cropId ? cropById.get(plot.cropId)?.name ?? null : null;
+              const area = plot.areaHectares != null ? `${plot.areaHectares} ha` : '— ha';
               return (
                 <TouchableOpacity
                   key={plot.id}
                   style={[styles.plotCard, isSelected && styles.plotCardSelected]}
                   onPress={() => setSelectedPlotId(plot.id)}
-                  accessibilityLabel={`Talhão ${plot.identifier}`}
+                  accessibilityLabel={`Talhão ${plot.identifier}, cultura ${cropName ?? 'não definida'}`}
                 >
                   <View style={styles.plotRow}>
                     <View style={styles.plotInfo}>
                       <Text style={styles.plotName}>{plot.identifier}</Text>
-                      <Text style={styles.plotSub}>{plot.areaHectares != null ? `${plot.areaHectares} ha` : '— ha'}</Text>
+                      <View style={styles.plotMetaRow}>
+                        <Ionicons name="leaf-outline" size={12} color={colors.textMuted} />
+                        <Text style={styles.plotSub}>
+                          {cropName ?? 'Sem cultura'} · {area}
+                        </Text>
+                      </View>
                     </View>
                     <View style={styles.plotActions}>
                       <View style={[styles.badge, { backgroundColor: color + '18' }]}>
@@ -591,6 +609,7 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     plotRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     plotInfo: { flex: 1, gap: 3 },
     plotName: { ...typography.bodyBold, color: c.text },
+    plotMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     plotSub: { ...typography.caption, color: c.textMuted },
     plotActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     badge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
