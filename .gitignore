@@ -44,3 +44,8 @@ yarn-error.*
 #ai
 plan
 plan/plan.md
+roteiro/
+
+# local-only docs/scripts (não versionar)
+TESTING.md
+scripts/
