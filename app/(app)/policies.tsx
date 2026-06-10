@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,7 +14,9 @@ import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
-import { Policy, POLICY_SITUATION, policyService } from '@/services/policyService';
+import { usePolicies } from '@/hooks/usePolicies';
+import { useRefreshControl } from '@/hooks/useRefreshControl';
+import { POLICY_SITUATION } from '@/services/policyService';
 
 const POLICY_SITUATION_COLOR: Record<number, string> = {
   1: '#00B131',
@@ -35,27 +36,17 @@ function formatCurrency(value: number) {
 export default function PoliciesScreen() {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const [policies, setPolicies] = useState<Policy[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { policies, loading, error, refetch } = usePolicies();
   const [refreshing, setRefreshing] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      setError('');
-      setPolicies(await policyService.list());
-    } catch {
-      setError('Não foi possível carregar as apólices.');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const refreshControl = useRefreshControl(refreshing, async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  });
 
   if (loading) return <LoadingState />;
-  if (error) return <ErrorState message={error} onRetry={load} />;
+  if (error) return <ErrorState message={error} onRetry={refetch} />;
 
   return (
     <>
@@ -63,14 +54,7 @@ export default function PoliciesScreen() {
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
         contentContainerStyle={policies.length === 0 ? styles.empty : styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); load(); }}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
+        refreshControl={refreshControl}
       >
         {policies.length === 0 ? (
           <EmptyState
@@ -92,6 +76,19 @@ export default function PoliciesScreen() {
                   <View style={[styles.badge, { backgroundColor: color + '18' }]}>
                     <Text style={[styles.badgeText, { color }]}>{label}</Text>
                   </View>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Fazenda</Text>
+                  <Text style={styles.infoValue} numberOfLines={1}>
+                    {item.farmName ?? '—'}
+                  </Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Talhão</Text>
+                  <Text style={styles.infoValue} numberOfLines={1}>
+                    {item.plotIdentifier ?? '—'}
+                  </Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.infoRow}>
@@ -136,6 +133,6 @@ function makeStyles(c: ReturnType<typeof useColors>) {
     divider: { height: 1, backgroundColor: c.borderLight },
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     infoLabel: { ...typography.caption, color: c.textMuted },
-    infoValue: { ...typography.body, color: c.text, fontSize: 14 },
+    infoValue: { ...typography.body, color: c.text, fontSize: 14, flexShrink: 1, textAlign: 'right', marginLeft: spacing.sm },
   });
 }
