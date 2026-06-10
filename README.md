@@ -1,3 +1,13 @@
+# Integrantes
+
+- Davi Praxedes Santos Silva - RM 560719
+- Kauê Vinicius Samartino da Silva - RM 559317
+- João dos Santos Cardoso de Jesus - RM 560400
+- Alexis Ronaldo Quirijota Rondo - RM 560384
+
+# Link Youtube
+https://youtu.be/CIySOhyJZEI
+
 # Zenith Harvest — App Mobile
 
 > Plataforma de seguro paramétrico agrícola operada por satélite e inteligência artificial.
@@ -140,6 +150,8 @@ store/                   # AuthContext (JWT + usuário)
 - Histórico NDVI do talhão (séries temporais do MongoDB)
 - Análises satelitais Postgres geradas pelo worker após cada sinistro
 - Score de confiança da IA e flag de suspeita de fraude
+- Varredura preventiva de NDVI: quando o índice cai, gera alerta e notifica via PIX
+  (backend — `POST /api/varredura/alertas` dispara; alertas em `/api/alertas`)
 
 ### Chatbot IA
 - Chat especializado em agronegócio via llama3.2 (Ollama)
