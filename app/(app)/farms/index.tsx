@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,6 +15,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { useRefreshControl } from '@/hooks/useRefreshControl';
 import { Farm, farmService } from '@/services/farmService';
 
 export default function FarmsScreen() {
@@ -40,6 +40,11 @@ export default function FarmsScreen() {
 
   useEffect(() => { load(); }, [load]);
 
+  const refreshControl = useRefreshControl(refreshing, () => {
+    setRefreshing(true);
+    load();
+  });
+
   if (loading) return <LoadingState variant="list" />;
   if (error) return <ErrorState message={error} onRetry={load} />;
 
@@ -49,6 +54,7 @@ export default function FarmsScreen() {
         options={{
           title: 'Minhas Fazendas',
           headerShown: true,
+          headerLeft: () => null,
           headerRight: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: spacing.sm }}>
               <TouchableOpacity
@@ -72,14 +78,7 @@ export default function FarmsScreen() {
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
         contentContainerStyle={farms.length === 0 ? styles.empty : styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); load(); }}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
+        refreshControl={refreshControl}
       >
         {farms.length === 0 ? (
           <EmptyState

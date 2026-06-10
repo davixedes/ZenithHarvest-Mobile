@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  RefreshControl,
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -15,6 +16,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { useRefreshControl } from '@/hooks/useRefreshControl';
 import { Payment, paymentService, PAYMENT_SITUATION, PAYMENT_SITUATION_COLOR } from '@/services/paymentService';
 
 function formatCurrency(value: number) {
@@ -47,6 +49,13 @@ export default function PaymentsScreen() {
 
   useEffect(() => { load(); }, [load]);
 
+  async function onRefresh() {
+    setRefreshing(true);
+    await load();
+  }
+
+  const refreshControl = useRefreshControl(refreshing, onRefresh);
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={load} />;
 
@@ -56,18 +65,30 @@ export default function PaymentsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Pagamentos', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Pagamentos',
+          headerShown: true,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={onRefresh}
+              disabled={refreshing}
+              style={{ marginRight: spacing.sm, padding: 4 }}
+              accessibilityLabel="Atualizar lista de pagamentos"
+            >
+              {refreshing ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Ionicons name="refresh-outline" size={24} color={colors.primary} />
+              )}
+            </TouchableOpacity>
+          ),
+        }}
+      />
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
         contentContainerStyle={payments.length === 0 ? styles.empty : styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); load(); }}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
+        refreshControl={refreshControl}
       >
         {payments.length === 0 ? (
           <EmptyState

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,6 +13,7 @@ import { router, Stack } from 'expo-router';
 
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { useRefreshControl } from '@/hooks/useRefreshControl';
 import {
   Claim,
   CLAIM_CATEGORY,
@@ -55,6 +55,11 @@ export default function DashboardScreen() {
     load();
   }, [load]);
 
+  const refreshControl = useRefreshControl(refreshing, () => {
+    setRefreshing(true);
+    load();
+  });
+
   const openClaims = claims.filter((c) => c.claimSituationId === 1).length;
 
   const today = new Intl.DateTimeFormat('pt-BR', {
@@ -69,17 +74,7 @@ export default function DashboardScreen() {
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
         contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              load();
-            }}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
+        refreshControl={refreshControl}
       >
         {/* ── HEADER ─────────────────────────────────────────────── */}
         <View style={styles.header}>
@@ -89,7 +84,7 @@ export default function DashboardScreen() {
           </View>
           <TouchableOpacity
             style={[styles.avatar, { backgroundColor: colors.primary }]}
-            onPress={() => router.push('/(app)/profile')}
+            onPress={() => router.navigate('/(app)/profile')}
             accessibilityLabel="Abrir perfil"
           >
             <Text style={[styles.avatarInitial, { color: colors.textOnPrimary }]}>
@@ -108,7 +103,7 @@ export default function DashboardScreen() {
               color={colors.primary}
               bg={colors.primaryLight}
               surface={colors.surface}
-              onPress={() => router.push('/(app)/farms')}
+              onPress={() => router.navigate('/(app)/farms')}
             />
             <ActionBtn
               icon="document-text"
@@ -116,7 +111,7 @@ export default function DashboardScreen() {
               color={colors.warning}
               bg={colors.warningBg}
               surface={colors.surface}
-              onPress={() => router.push('/(app)/claims')}
+              onPress={() => router.navigate('/(app)/claims')}
             />
             <ActionBtn
               icon="card-outline"
@@ -132,7 +127,7 @@ export default function DashboardScreen() {
               color={colors.primaryDark}
               bg={colors.primaryLight}
               surface={colors.surface}
-              onPress={() => router.push('/(app)/chat')}
+              onPress={() => router.navigate('/(app)/chat')}
             />
           </View>
         </View>
@@ -170,7 +165,7 @@ export default function DashboardScreen() {
           <View style={styles.sectionRow}>
             <Text style={styles.sectionTitle}>Minhas Fazendas</Text>
             <TouchableOpacity
-              onPress={() => router.push('/(app)/farms')}
+              onPress={() => router.navigate('/(app)/farms')}
               accessibilityLabel="Ver todas as fazendas"
             >
               <Text style={[styles.seeAll, { color: colors.primary }]}>Ver todas</Text>
@@ -190,7 +185,7 @@ export default function DashboardScreen() {
               </Text>
               <TouchableOpacity
                 style={[styles.emptyBtn, { backgroundColor: colors.primaryLight }]}
-                onPress={() => router.push('/(app)/farms')}
+                onPress={() => router.navigate('/(app)/farms')}
                 accessibilityLabel="Ir para fazendas"
               >
                 <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
@@ -204,7 +199,7 @@ export default function DashboardScreen() {
               <TouchableOpacity
                 key={farm.id}
                 style={[styles.listCard, { backgroundColor: colors.surface }]}
-                onPress={() => router.push(`/(app)/farms/${farm.id}`)}
+                onPress={() => router.navigate(`/(app)/farms/${farm.id}`)}
                 accessibilityLabel={`Fazenda ${farm.name}`}
               >
                 <View style={[styles.listCardIcon, { backgroundColor: colors.primaryLight }]}>
@@ -227,7 +222,7 @@ export default function DashboardScreen() {
           <View style={styles.sectionRow}>
             <Text style={styles.sectionTitle}>Sinistros Recentes</Text>
             <TouchableOpacity
-              onPress={() => router.push('/(app)/claims')}
+              onPress={() => router.navigate('/(app)/claims')}
               accessibilityLabel="Ver todos os sinistros"
             >
               <Text style={[styles.seeAll, { color: colors.primary }]}>Ver todos</Text>
@@ -247,7 +242,7 @@ export default function DashboardScreen() {
               </Text>
               <TouchableOpacity
                 style={[styles.emptyBtn, { backgroundColor: colors.warningBg }]}
-                onPress={() => router.push('/(app)/claims')}
+                onPress={() => router.navigate('/(app)/claims')}
                 accessibilityLabel="Ir para sinistros"
               >
                 <Ionicons name="add-circle-outline" size={16} color={colors.warning} />
@@ -264,7 +259,7 @@ export default function DashboardScreen() {
                 <TouchableOpacity
                   key={claim.id}
                   style={[styles.listCard, { backgroundColor: colors.surface }]}
-                  onPress={() => router.push(`/(app)/claims/${claim.id}`)}
+                  onPress={() => router.navigate(`/(app)/claims/${claim.id}`)}
                   accessibilityLabel={`Sinistro ${claim.claimNumber}`}
                 >
                   <View style={[styles.statusAccent, { backgroundColor: color }]} />
