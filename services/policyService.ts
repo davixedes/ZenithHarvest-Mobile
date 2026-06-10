@@ -15,10 +15,10 @@ export interface Policy {
   endDate: string;
 }
 
-/** IDs do seed: 1=Ativa, 2=Suspensa, 3=Cancelada, 4=Expirada */
+/** IDs do seed (PolicySituation): 1=Vigente, 2=Aguardando pagamento, 3=Cancelada, 4=Expirada */
 export const POLICY_SITUATION: Record<number, string> = {
-  1: 'Ativa',
-  2: 'Suspensa',
+  1: 'Vigente',
+  2: 'Aguardando pagamento',
   3: 'Cancelada',
   4: 'Expirada',
 };

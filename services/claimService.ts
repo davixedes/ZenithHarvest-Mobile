@@ -29,7 +29,7 @@ export interface Claim {
 }
 
 export interface CreateClaimRequest {
-  claimNumber: string;
+  // claimNumber é gerado pelo backend (core-svc) — o app não envia mais.
   policyId: string;
   claimSituationId: number;
   categoryId: number;
@@ -41,12 +41,12 @@ export interface CreateClaimRequest {
   ndviBefore?: number;
 }
 
-/** IDs do seed: 1=Aberto, 2=Em análise, 3=Aprovado, 4=Reprovado, 5=Pago */
+/** IDs do seed (ClaimSituation): 1=Aberto, 2=Em análise, 3=Aprovado, 4=Rejeitado, 5=Pago */
 export const CLAIM_SITUATION: Record<number, string> = {
   1: 'Aberto',
   2: 'Em análise',
   3: 'Aprovado',
-  4: 'Reprovado',
+  4: 'Rejeitado',
   5: 'Pago',
 };
 

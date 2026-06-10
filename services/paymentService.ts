@@ -13,11 +13,11 @@ export interface Payment {
   createdAt: string;
 }
 
-/** IDs do seed: 1=Pendente, 2=Em processamento, 3=Pago, 4=Falhou, 5=Estornado */
+/** IDs do seed (PaymentSituation): 1=Pendente, 2=Processando, 3=Confirmado, 4=Falhou, 5=Estornado */
 export const PAYMENT_SITUATION: Record<number, string> = {
   1: 'Pendente',
-  2: 'Em processamento',
-  3: 'Pago',
+  2: 'Processando',
+  3: 'Confirmado',
   4: 'Falhou',
   5: 'Estornado',
 };
