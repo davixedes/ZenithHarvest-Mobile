@@ -17,14 +17,6 @@ https://youtu.be/CIySOhyJZEI
 
 ---
 
-## Equipe
-
-| Nome | RM |
-|---|---|
-| Kaue Samartino | — |
-
----
-
 ## Stack
 
 | Camada | Tecnologia |
