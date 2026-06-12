@@ -3,6 +3,12 @@ import { Stack } from 'expo-router';
 import { fonts } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
+// Garante que a lista (`index`) seja sempre a base da pilha, mesmo quando o
+// detalhe é aberto direto de outra aba — assim "voltar" retorna para a lista.
+export const unstable_settings = {
+  initialRouteName: 'index',
+};
+
 export default function ClaimsLayout() {
   const colors = useColors();
   return (

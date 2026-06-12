@@ -11,6 +11,7 @@ import { Stack } from 'expo-router';
 
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { HeaderBackButton } from '@/components/HeaderBackButton';
 import { LoadingState } from '@/components/LoadingState';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -50,7 +51,13 @@ export default function PoliciesScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Apólices', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Apólices',
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton fallback="/(app)/profile" />,
+        }}
+      />
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
         contentContainerStyle={policies.length === 0 ? styles.empty : styles.list}

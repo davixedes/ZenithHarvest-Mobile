@@ -13,6 +13,7 @@ import { Stack } from 'expo-router';
 
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { HeaderBackButton } from '@/components/HeaderBackButton';
 import { LoadingState } from '@/components/LoadingState';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -69,6 +70,7 @@ export default function PaymentsScreen() {
         options={{
           title: 'Pagamentos',
           headerShown: true,
+          headerLeft: () => <HeaderBackButton fallback="/(app)/profile" />,
           headerRight: () => (
             <TouchableOpacity
               onPress={onRefresh}

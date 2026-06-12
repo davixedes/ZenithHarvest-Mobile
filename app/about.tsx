@@ -5,6 +5,7 @@ import Constants from 'expo-constants';
 import { Stack } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
+import { HeaderBackButton } from '@/components/HeaderBackButton';
 import { radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
@@ -17,7 +18,13 @@ export default function AboutScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Sobre o App', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Sobre o App',
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton fallback="/(app)/profile" />,
+        }}
+      />
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.logoArea}>
           <View style={styles.iconMark}>

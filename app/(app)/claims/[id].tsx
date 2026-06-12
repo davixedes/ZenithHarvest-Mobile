@@ -1,17 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 
 import { ClaimTimeline } from '@/components/ClaimTimeline';
 import { ErrorState } from '@/components/ErrorState';
+import { HeaderBackButton } from '@/components/HeaderBackButton';
 import { LoadingState } from '@/components/LoadingState';
 import { NdviGauge } from '@/components/NdviGauge';
 import { NdviHistoryChart } from '@/components/NdviHistoryChart';
 import { useToast } from '@/components/Toast';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { useRefreshControl } from '@/hooks/useRefreshControl';
 import {
   Claim,
   CLAIM_CATEGORY,
@@ -53,6 +55,7 @@ export default function ClaimDetailScreen() {
   const [ndviHistory, setNdviHistory] = useState<NdviHistorico[]>([]);
   const [ndviLoading, setNdviLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -87,6 +90,14 @@ export default function ClaimDetailScreen() {
     load();
   }, [load]);
 
+  async function onRefresh() {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }
+
+  const refreshControl = useRefreshControl(refreshing, onRefresh);
+
   async function handleDelete() {
     Alert.alert('Remover sinistro', 'Deseja remover este sinistro?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -114,8 +125,28 @@ export default function ClaimDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Detalhe do Sinistro', headerShown: true }} />
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Stack.Screen
+        options={{
+          title: 'Detalhe do Sinistro',
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton fallback="/(app)/claims" />,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={onRefresh}
+              disabled={refreshing}
+              style={{ marginRight: spacing.sm, padding: 4 }}
+              accessibilityLabel="Atualizar sinistro"
+            >
+              {refreshing ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Ionicons name="refresh-outline" size={24} color={colors.primary} />
+              )}
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} refreshControl={refreshControl}>
         <View style={styles.header}>
           <View style={styles.headerInfo}>
             <Text style={styles.claimNumber}>{origin.plotIdentifier ?? claim.claimNumber}</Text>

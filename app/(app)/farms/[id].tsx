@@ -18,6 +18,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { HeaderBackButton } from '@/components/HeaderBackButton';
 import { LoadingState } from '@/components/LoadingState';
 import { NdviHistoryChart } from '@/components/NdviHistoryChart';
 import { useToast } from '@/components/Toast';
@@ -243,15 +244,7 @@ export default function FarmDetailScreen() {
         options={{
           title: farm.name,
           headerShown: true,
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => (router.canGoBack() ? router.back() : router.replace('/(app)/farms'))}
-              style={{ marginRight: spacing.sm, padding: 4 }}
-              accessibilityLabel="Voltar"
-            >
-              <Ionicons name="chevron-back" size={26} color={colors.text} />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <HeaderBackButton fallback="/(app)/farms" />,
           headerRight: () => (
             <TouchableOpacity
               onPress={() => setEditing((e) => !e)}

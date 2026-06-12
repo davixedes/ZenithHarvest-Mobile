@@ -20,6 +20,7 @@ import { router, Stack } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { ErrorState } from '@/components/ErrorState';
+import { HeaderBackButton } from '@/components/HeaderBackButton';
 import { LoadingState } from '@/components/LoadingState';
 import { useToast } from '@/components/Toast';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
@@ -166,7 +167,13 @@ export default function NewClaimScreen() {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Stack.Screen options={{ title: 'Abrir Sinistro', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Abrir Sinistro',
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton fallback="/(app)/claims" />,
+        }}
+      />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
 
         <View style={styles.card}>

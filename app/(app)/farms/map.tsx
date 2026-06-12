@@ -12,6 +12,7 @@ import { router, Stack } from 'expo-router';
 
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { HeaderBackButton } from '@/components/HeaderBackButton';
 import { LoadingState } from '@/components/LoadingState';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -66,7 +67,13 @@ function WebFallback() {
   const colors = useColors();
   return (
     <>
-      <Stack.Screen options={{ title: 'Mapa de Fazendas', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Mapa de Fazendas',
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton fallback="/(app)/farms" />,
+        }}
+      />
       <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: spacing.xl }}>
         <Ionicons name="map-outline" size={64} color={colors.textLight} />
         <Text style={{ ...typography.title, color: colors.text, marginTop: spacing.md, textAlign: 'center' }}>
@@ -130,7 +137,13 @@ export default function FarmsMapScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Mapa de Fazendas', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Mapa de Fazendas',
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton fallback="/(app)/farms" />,
+        }}
+      />
 
       <View style={styles.container}>
         {/* ── MAP ── */}

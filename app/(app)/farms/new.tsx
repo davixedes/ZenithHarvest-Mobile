@@ -17,6 +17,7 @@ import { router, Stack } from 'expo-router';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
+import { HeaderBackButton } from '@/components/HeaderBackButton';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { farmService } from '@/services/farmService';
@@ -107,7 +108,13 @@ export default function NewFarmScreen() {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Stack.Screen options={{ title: 'Nova Fazenda', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Nova Fazenda',
+          headerShown: true,
+          headerLeft: () => <HeaderBackButton fallback="/(app)/farms" />,
+        }}
+      />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
 
         <View style={styles.card}>
