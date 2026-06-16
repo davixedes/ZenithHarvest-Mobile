@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, StyleSheet, ViewStyle } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Animated, Platform, ViewStyle } from 'react-native';
 
 import { radius } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -13,7 +13,7 @@ interface Props {
 
 export function SkeletonBox({ width, height = 16, borderRadius = radius.sm, style }: Props) {
   const colors = useColors();
-  const opacity = useRef(new Animated.Value(0.45)).current;
+  const [opacity] = useState(() => new Animated.Value(0.45));
 
   useEffect(() => {
     const nativeDriver = Platform.OS !== 'web';

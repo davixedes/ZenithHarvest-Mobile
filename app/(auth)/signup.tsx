@@ -14,7 +14,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 
 import { useColors, useGradient } from '@/hooks/useColors';
 import { fonts, radius, shadow, spacing, typography } from '@/constants/theme';
@@ -57,7 +57,7 @@ export default function SignupScreen() {
         password,
       });
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 409) {
+      if (isAxiosError(err) && err.response?.status === 409) {
         setError('E-mail ou CPF já cadastrado.');
       } else {
         setError('Falha ao criar conta. Tente novamente.');

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -18,7 +18,7 @@ export function ClaimTimeline({ situationId }: ClaimTimelineProps) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const isRejected = situationId === 4;
   const currentIdx = isRejected ? 2 : TIMELINE_IDS.indexOf(situationId as (typeof TIMELINE_IDS)[number]);
-  const pulse = useRef(new Animated.Value(1)).current;
+  const [pulse] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     if (currentIdx < 0) return undefined;

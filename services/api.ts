@@ -1,11 +1,11 @@
-import axios from 'axios';
+import { create } from 'axios';
 
 import { API_BASE_URL } from '@/constants/api';
 import { storage } from '@/utils/storage';
 
 export const TOKEN_KEY = 'zenith_jwt';
 
-const api = axios.create({
+const api = create({
   baseURL: API_BASE_URL,
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Animated, LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
@@ -75,7 +75,7 @@ export function NdviHistoryChart({
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [width, setWidth] = useState(0);
-  const reveal = useRef(new Animated.Value(0)).current;
+  const [reveal] = useState(() => new Animated.Value(0));
 
   const points = useMemo(() => buildPoints(data, width), [data, width]);
 

@@ -14,7 +14,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 
 import { API_BASE_URL } from '@/constants/api';
 
@@ -44,9 +44,9 @@ export default function LoginScreen() {
     try {
       await login({ email: email.trim().toLowerCase(), password });
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
+      if (isAxiosError(err) && err.response?.status === 401) {
         setError('E-mail ou senha incorretos.');
-      } else if (axios.isAxiosError(err) && !err.response) {
+      } else if (isAxiosError(err) && !err.response) {
         setError(
           `Não foi possível conectar em ${API_BASE_URL}. Verifique se o gateway está rodando e se EXPO_PUBLIC_API_URL aponta para o IP correto (não use localhost no celular).`
         );

@@ -69,19 +69,19 @@ export default function NewClaimScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    loadPolicies();
-    getLocation();
-  }, [loadPolicies]);
-
-  async function getLocation() {
+  const getLocation = useCallback(async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') return;
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       setCoords({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
     } catch {}
-  }
+  }, []);
+
+  useEffect(() => {
+    loadPolicies();
+    getLocation();
+  }, [loadPolicies, getLocation]);
 
   function pickPhoto() {
     Alert.alert('Adicionar foto', 'Escolha a origem da imagem', [

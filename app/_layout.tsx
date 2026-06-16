@@ -1,5 +1,3 @@
-import 'react-native-gesture-handler';
-
 import {
   PlusJakartaSans_400Regular,
   PlusJakartaSans_500Medium,

@@ -115,7 +115,9 @@ export default function FarmsMapScreen() {
   if (Platform.OS === 'web') return <WebFallback />;
 
   // Dynamic import only on native to avoid web bundling errors
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const MapView = require('react-native-maps').default;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Marker, Callout, UrlTile } = require('react-native-maps');
 
   if (loading) return <LoadingState />;

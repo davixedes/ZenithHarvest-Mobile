@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -48,7 +48,7 @@ interface GaugeLineProps {
 function GaugeLine({ label, value }: GaugeLineProps) {
   const colors = useColors();
   const [trackWidth, setTrackWidth] = useState(0);
-  const animPct = useRef(new Animated.Value(0)).current;
+  const [animPct] = useState(() => new Animated.Value(0));
   const pct = clamp(value, 0, 1);
   const healthColor = ndviHealthColor(value, colors);
   const healthLabel = ndviHealthLabel(value);
