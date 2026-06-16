@@ -147,7 +147,7 @@ stages:
               - script: |
                   mkdir -p $(bundleDir)
                   EXPO_PUBLIC_API_URL="$EXPO_PUBLIC_API_URL" \
-                    npx react-native bundle \
+                    npx expo export:embed \
                       --platform android \
                       --dev false \
                       --entry-file index.ts \
